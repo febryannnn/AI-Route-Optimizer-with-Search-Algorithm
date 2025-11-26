@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from enum import Enum
 import requests
 import random
 import math
@@ -8,6 +9,11 @@ import os
 
 app = Flask(__name__)
 CORS(app)
+
+LOCATION_FILE = "./data/locations.json"
+class ROUTE_METHOD(Enum):
+    CAR = "driving"
+    BIKE = "bike"
 
 # ==================================================================
 # OSRM Distance
@@ -28,12 +34,12 @@ def euclidean(p1, p2):
     return R * c
 
 
-def osrm_distance(p1, p2):
+def osrm_distance(p1, p2, route_method:ROUTE_METHOD=ROUTE_METHOD.CAR):
     key = (p1["lat"], p1["lng"], p2["lat"], p2["lng"])
     if key in distance_cache:
         return distance_cache[key]
 
-    url = f"https://router.project-osrm.org/route/v1/driving/{p1['lng']},{p1['lat']};{p2['lng']},{p2['lat']}?overview=false"
+    url = f"https://router.project-osrm.org/route/v1/{route_method.value}/{p1['lng']},{p1['lat']};{p2['lng']},{p2['lat']}?overview=false"
 
     try:
         res = requests.get(url, timeout=5).json()
@@ -44,8 +50,9 @@ def osrm_distance(p1, p2):
     distance_cache[key] = d
     return d
 
-def osrm_route_path(p1, p2):
-    url = f"https://router.project-osrm.org/route/v1/driving/{p1['lng']},{p1['lat']};{p2['lng']},{p2['lat']}?overview=full&geometries=geojson"
+def osrm_route_path(p1, p2, route_method:ROUTE_METHOD=ROUTE_METHOD.CAR):    
+    url = f"https://router.project-osrm.org/route/v1/{route_method.value}/{p1['lng']},{p1['lat']};{p2['lng']},{p2['lat']}?overview=full&geometries=geojson"
+
     try:
         res = requests.get(url, timeout=5).json()
         return res["routes"][0]["geometry"]["coordinates"]
@@ -56,13 +63,13 @@ def osrm_route_path(p1, p2):
 # ==================================================================
 # Distance Matrix
 # ==================================================================
-def build_distance_matrix(locations):
+def build_distance_matrix(locations:list, route_method:ROUTE_METHOD=ROUTE_METHOD.CAR):
     n = len(locations)
     dist = [[0] * n for _ in range(n)]
     for i in range(n):
         for j in range(n):
             if i != j:
-                dist[i][j] = osrm_distance(locations[i], locations[j])
+                dist[i][j] = osrm_distance(locations[i], locations[j], route_method)
     return dist
 
 
@@ -150,7 +157,7 @@ def simulated_annealing(dist, max_iter, temp, cooling):
 # ==================================================================
 # Genetic Algorithm
 # ==================================================================
-def genetic_algorithm(dist, pop_size, generations, mutation_rate):
+def genetic_algorithm(dist, pop_size, generations, mutation_rate, car_count, bike_count):
     n = len(dist)
 
     def create_individual():
@@ -234,7 +241,8 @@ def solve(algorithm):
         locations = data["locations"]
         params = data["params"]
 
-        dist = build_distance_matrix(locations)
+        route_method = ROUTE_METHOD.CAR
+        dist = build_distance_matrix(locations, route_method)
 
         if algorithm == "hill-climbing":
             route, cost, history = hill_climbing(dist, params["maxIterations"])
@@ -273,14 +281,24 @@ def solve(algorithm):
     else:
         return jsonify({"error": "No valid input data"}), 400
     
-    
-LOCATION_FILE = "./data/locations.json"
 
 @app.get("/api/locations")
 def get_locations():
     with open(LOCATION_FILE, "r") as f:
         data = json.load(f)
     return jsonify(data)
+
+@app.post("/api/locations")
+def add_location():
+    new_loc = request.json
+
+    with open(LOCATION_FILE, "r") as f:
+        data = json.load(f)
+    data.append(new_loc)
+    with open(LOCATION_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+    return jsonify({"message": "Location added", "locations": data})
 
 if __name__ == "__main__":
     app.run(debug=True)
