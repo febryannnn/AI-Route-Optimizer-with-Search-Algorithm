@@ -306,25 +306,24 @@ def add_location():
 def delete_location():
     loc_to_be_deleted = request.json
 
-    try:
-        with open(LOCATION_FILE, "r") as f:
-            data = json.load(f)
-        
-        index_to_delete = None
-        for i, loc in enumerate(data):
-            if loc["name"].lower() == loc_to_be_deleted.lower():
-                index_to_delete = i
-                break
-        
-        if index_to_delete is None:
-            return jsonify({"error": f"Location '{loc_to_be_deleted}' not found"}), 404
-        
-        deleted_location = data.pop(index_to_delete)
-        
-        with open(LOCATION_FILE, "w") as f:
-            json.dump(data, f, indent=2)
-        
-        return jsonify({f"message": "Location removed", "locations": {deleted_location}})
+    with open(LOCATION_FILE, "r") as f:
+        data = json.load(f)
+    
+    index_to_delete = None
+    for i, loc in enumerate(data):
+        if loc["name"].lower() == loc_to_be_deleted.lower():
+            index_to_delete = i
+            break
+    
+    if index_to_delete is None:
+        return jsonify({"error": f"Location '{loc_to_be_deleted}' not found"}), 404
+    
+    deleted_location = data.pop(index_to_delete)
+    
+    with open(LOCATION_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+    
+    return jsonify({f"message": "Location removed", "locations": {deleted_location}})
     
     # except FileNotFoundError:
     #     return jsonify({"error": "Locations file not found"}), 404
