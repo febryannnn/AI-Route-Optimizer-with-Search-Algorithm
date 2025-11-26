@@ -303,9 +303,10 @@ def add_location():
 
     return jsonify({"message": "Location added", "locations": data})
 
+@app.delete("/api/locations")
 def delete_location():
     loc_to_be_deleted = request.json
-
+    
     with open(LOCATION_FILE, "r") as f:
         data = json.load(f)
     
