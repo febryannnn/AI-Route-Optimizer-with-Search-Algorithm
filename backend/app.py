@@ -158,26 +158,29 @@ def simulated_annealing(dist, max_iter, temp, cooling):
 # Genetic Algorithm
 # ==================================================================
 def genetic_algorithm(dist, pop_size, generations, mutation_rate, car_count, bike_count):
-    n = len(dist)
+    n_location = len(dist)
 
-    def create_individual():
-        route = list(range(n))
+    def create_chrom():
+        route = list(range(n_location))
         random.shuffle(route)
         return route
+    
+    def decode_chrom():
+        pass
 
     def fitness(route):
         return 1 / (1 + route_cost(route, dist))
 
     def crossover(a, b):
-        start, end = sorted(random.sample(range(n), 2))
-        child = [None] * n
+        start, end = sorted(random.sample(range(n_location), 2))
+        child = [None] * n_location
 
         child[start:end] = a[start:end]
 
         ptr = end
         for city in b:
             if city not in child:
-                if ptr >= n:
+                if ptr >= n_location:
                     ptr = 0
                 child[ptr] = city
                 ptr += 1
@@ -186,11 +189,11 @@ def genetic_algorithm(dist, pop_size, generations, mutation_rate, car_count, bik
 
     def mutate(route):
         if random.random() < mutation_rate:
-            i, j = random.sample(range(n), 2)
+            i, j = random.sample(range(n_location), 2)
             route[i], route[j] = route[j], route[i]
         return route
 
-    population = [create_individual() for _ in range(pop_size)]
+    population = [create_chrom() for _ in range(pop_size)]
     history = []
     best_route = None
     best_cost = float("inf")
@@ -254,7 +257,7 @@ def solve(algorithm):
 
         elif algorithm == "genetic":
             route, cost, history = genetic_algorithm(
-                dist, params["populationSize"], params["generations"], params["mutationRate"]
+                dist, params["populationSize"], params["generations"], params["mutationRate", 10, 10]
             )
         else:
             return jsonify({"error": "Algorithm Not Found"}), 400
@@ -296,9 +299,37 @@ def add_location():
         data = json.load(f)
     data.append(new_loc)
     with open(LOCATION_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(data, f, indent=2)    
 
     return jsonify({"message": "Location added", "locations": data})
+
+def delete_location():
+    loc_to_be_deleted = request.json
+
+    try:
+        with open(LOCATION_FILE, "r") as f:
+            data = json.load(f)
+        
+        index_to_delete = None
+        for i, loc in enumerate(data):
+            if loc["name"].lower() == loc_to_be_deleted.lower():
+                index_to_delete = i
+                break
+        
+        if index_to_delete is None:
+            return jsonify({"error": f"Location '{loc_to_be_deleted}' not found"}), 404
+        
+        deleted_location = data.pop(index_to_delete)
+        
+        with open(LOCATION_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return jsonify({f"message": "Location removed", "locations": {deleted_location}})
+    
+    # except FileNotFoundError:
+    #     return jsonify({"error": "Locations file not found"}), 404
+    # except Exception as e:
+    #     return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
