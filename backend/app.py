@@ -3,6 +3,8 @@ from flask_cors import CORS
 import requests
 import random
 import math
+import json
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -270,7 +272,15 @@ def solve(algorithm):
     
     else:
         return jsonify({"error": "No valid input data"}), 400
+    
+    
+LOCATION_FILE = "./data/locations.json"
 
+@app.get("/api/locations")
+def get_locations():
+    with open(LOCATION_FILE, "r") as f:
+        data = json.load(f)
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(debug=True)
