@@ -257,7 +257,8 @@ def solve(algorithm):
 
         elif algorithm == "genetic":
             route, cost, history = genetic_algorithm(
-                dist, params["populationSize"], params["generations"], params["mutationRate", 10, 10]
+                dist, params["populationSize"], params["generations"], params["mutationRate"]
+                , 10, 10
             )
         else:
             return jsonify({"error": "Algorithm Not Found"}), 400
