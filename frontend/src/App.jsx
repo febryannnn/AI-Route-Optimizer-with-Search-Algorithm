@@ -346,8 +346,7 @@ function App() {
         if (!locations || locations.length === 0) {
           throw new Error("Locations tidak boleh kosong untuk algoritma ini");
         }
-
-        // Pastikan params ada dan beri default jika tidak
+        
         const saParams = {
           initialTemp: params?.initialTemp ?? 1000,
           coolingRate: params?.coolingRate ?? 0.995,
@@ -373,17 +372,15 @@ function App() {
             });
             break;
           case "genetic":
-            const vehicleCounts = {
-              carCount: vehicles.find((v) => v.type === "Mobil")?.count || 0,
-              motorCount: vehicles.find((v) => v.type === "Motor")?.count || 0,
-            };
             data = await api.solveGenetic(locations, {
-              ...saParams,
-              ...vehicleCounts,
+              vehicles: vehicles,
+              populationSize: saParams.populationSize,
+              generations: saParams.generations,
+              mutationRate: saParams.mutationRate,
             });
             break;
           case "hill-climbing":
-            data = await api.solveHillClimbing(locations, {
+            data = await solveHillClimbing(locations, {
               vehicles: vehicles,
               maxIterations: saParams.maxIterations,
             });
@@ -397,6 +394,9 @@ function App() {
         throw new Error(`Algorithm "${algorithm}" tidak dikenali`);
       }
 
+      if (data.finalCost == 0) {
+        setError("Capacity kendaraan lebih kecil dari demand yang dibutuhkan");
+      }
       // Set hasil ke state
       setHistory(data.history);
 
@@ -411,7 +411,7 @@ function App() {
       setFinalCost(data.finalCost);
     } catch (error) {
       console.error("Error solving route:", error);
-      setError("Error: Pastikan input benar dan backend berjalan di port 5000");
+      setError("Error Solving Route");
     } finally {
       setSolving(false);
     }
@@ -474,26 +474,6 @@ function App() {
     setLocations(locations.filter((_, i) => i !== index));
   };
 
-  const generateRandomLocations = () => {
-    const count = 5;
-    const center = { lat: -7.2575, lng: 112.7521 };
-    const radius = 0.1;
-
-    const random = [];
-    random.push(locations[0]);
-
-    for (let i = 1; i < count; i++) {
-      const angle = Math.random() * 2 * Math.PI;
-      const r = Math.random() * radius;
-      random.push({
-        lat: center.lat + r * Math.cos(angle),
-        lng: center.lng + r * Math.sin(angle),
-        name: `Lokasi ${i}`,
-      });
-    }
-    setLocations(random);
-  };
-
   const currentState = history[Math.min(currentIteration, history.length - 1)];
   const chartData = history.slice(0, currentIteration + 1).map((h) => ({
     iteration: h.iteration,
@@ -551,7 +531,6 @@ function App() {
           playSpeed={playSpeed}
           setPlaySpeed={setPlaySpeed}
           solveRoute={solveRoute}
-          generateRandomLocations={generateRandomLocations}
           algorithmOptions={algorithmOptions}
           vehicleRoutes={vehicleRoutes}
           isVisualizing={isVisualizing}

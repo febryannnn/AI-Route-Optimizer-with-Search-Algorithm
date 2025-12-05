@@ -15,7 +15,7 @@ export const api = {
           locations,
           params: {
             vehicles: params.vehicles,
-            maxIterations: params.maxIterations || 50
+            maxIterations: params.maxIterations || 50,
           },
         }),
       });
@@ -61,6 +61,35 @@ export const api = {
     }
   },
 
+  solveTabuSearch: async (locations, params = {}) => {
+    try {
+      const response = await fetch(`${API_URL}/api/solve/simulated-annealing`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          locations,
+          params: {
+            vehicles: params.vehicles,
+            initialTemp: params.initialTemp || 1000,
+            coolingRate: params.coolingRate || 0.995,
+            maxIterations: params.maxIterations || 500,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to solve with Simulated Annealing");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Simulated Annealing error:", error);
+      throw error;
+    }
+  },
+
   // GENETIC ALGORITHM
   solveGenetic: async (locations, params = {}) => {
     try {
@@ -72,11 +101,10 @@ export const api = {
         body: JSON.stringify({
           locations,
           params: {
+            vehicles: params.vehicles,
             populationSize: params.populationSize || 100,
             generations: params.generations || 1000,
             mutationRate: params.mutationRate || 0.02,
-            carCount: params.carCount || 1,
-            motorCount: params.motorCount || 1
           },
         }),
       });

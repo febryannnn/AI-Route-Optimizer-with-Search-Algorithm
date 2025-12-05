@@ -18,7 +18,6 @@ export default function AlgorithmPanel({
   playSpeed,
   setPlaySpeed,
   solveRoute,
-  generateRandomLocations,
   algorithmOptions,
   vehicleRoutes,
   isVisualizing,
@@ -44,26 +43,26 @@ export default function AlgorithmPanel({
               className={`group relative overflow-hidden p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
                 algorithm === option.value
                   ? option.value === "hill-climbing"
-                    ? "border-blue-200 bg-gradient-to-br from-blue-50 via-blue-100/30 to-indigo-100/40 shadow-lg shadow-blue-100/50"
+                    ? "border-blue-400 bg-gradient-to-br from-blue-100 via-blue-200/50 to-indigo-200/60 shadow-xl shadow-blue-200/60"
                     : option.value === "simulated-annealing"
-                    ? "border-orange-200 bg-gradient-to-br from-orange-50 via-orange-100/30 to-red-100/40 shadow-lg shadow-orange-100/50"
-                    : "border-green-200 bg-gradient-to-br from-green-50 via-green-100/30 to-emerald-100/40 shadow-lg shadow-green-100/50"
+                    ? "border-orange-400 bg-gradient-to-br from-orange-100 via-orange-200/50 to-red-200/60 shadow-xl shadow-orange-200/60"
+                    : "border-green-400 bg-gradient-to-br from-green-100 via-green-200/50 to-emerald-200/60 shadow-xl shadow-green-200/60"
                   : "border-gray-200 hover:border-gray-300 bg-white shadow-sm hover:shadow-md"
               }`}
             >
-              {/* Gradient overlay on hover */}
+              {/* Gradient overlay on hover - More vibrant */}
               <div
-                className={`absolute inset-0 bg-gradient-to-r ${option.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                className={`absolute inset-0 bg-gradient-to-r ${option.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
               ></div>
 
-              {/* Accent bar - lebih tebal dan lebih visible */}
+              {/* Accent bar - Lebih vibrant dan tebal */}
               <div
-                className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${
+                className={`absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r ${
                   option.color
                 } transform transition-all duration-300 ${
                   algorithm === option.value
-                    ? "scale-x-100 opacity-80"
-                    : "scale-x-0 group-hover:scale-x-100 group-hover:opacity-60"
+                    ? "scale-x-100 opacity-100 shadow-lg"
+                    : "scale-x-0 group-hover:scale-x-100 group-hover:opacity-80"
                 }`}
               ></div>
 
@@ -73,10 +72,10 @@ export default function AlgorithmPanel({
                   <div
                     className={`w-10 h-10 rounded-xl bg-gradient-to-r ${
                       option.color
-                    } flex items-center justify-center shadow-md transition-all duration-300 ${
+                    } flex items-center justify-center shadow-lg transition-all duration-300 ${
                       algorithm === option.value
-                        ? "shadow-lg scale-110"
-                        : "group-hover:scale-105"
+                        ? "shadow-2xl scale-110 ring-2 ring-white"
+                        : "group-hover:scale-105 group-hover:shadow-xl"
                     }`}
                   >
                     <Zap
@@ -89,34 +88,44 @@ export default function AlgorithmPanel({
 
                   {algorithm === option.value && (
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center animate-pulse ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center animate-pulse ${
                         option.value === "hill-climbing"
-                          ? "bg-blue-500 shadow-lg shadow-blue-300"
+                          ? "bg-blue-600 shadow-xl shadow-blue-400/60 ring-2 ring-blue-200"
                           : option.value === "simulated-annealing"
-                          ? "bg-orange-500 shadow-lg shadow-orange-300"
-                          : "bg-green-500 shadow-lg shadow-green-300"
+                          ? "bg-orange-600 shadow-xl shadow-orange-400/60 ring-2 ring-orange-200"
+                          : "bg-green-600 shadow-xl shadow-green-400/60 ring-2 ring-green-200"
                       }`}
                     >
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                      <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
                     </div>
                   )}
                 </div>
 
                 <div className="text-left">
                   <div
-                    className={`text-sm font-semibold mb-1 transition-colors duration-300 ${
+                    className={`text-sm font-bold mb-1 transition-colors duration-300 ${
                       algorithm === option.value
                         ? option.value === "hill-climbing"
-                          ? "text-blue-700"
+                          ? "text-blue-800"
                           : option.value === "simulated-annealing"
-                          ? "text-orange-700"
-                          : "text-green-700"
+                          ? "text-orange-800"
+                          : "text-green-800"
                         : "text-gray-900"
                     }`}
                   >
                     {option.label}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div
+                    className={`text-xs font-medium ${
+                      algorithm === option.value
+                        ? option.value === "hill-climbing"
+                          ? "text-blue-600"
+                          : option.value === "simulated-annealing"
+                          ? "text-orange-600"
+                          : "text-green-600"
+                        : "text-gray-500"
+                    }`}
+                  >
                     {option.value === "hill-climbing" &&
                       "Fast local optimization"}
                     {option.value === "simulated-annealing" &&
@@ -127,15 +136,15 @@ export default function AlgorithmPanel({
                 </div>
               </div>
 
-              {/* Corner decoration when selected */}
+              {/* Corner decoration when selected - More visible */}
               {algorithm === option.value && (
                 <div
-                  className={`absolute bottom-0 right-0 w-16 h-16 rounded-tl-full ${
+                  className={`absolute bottom-0 right-0 w-20 h-20 rounded-tl-full ${
                     option.value === "hill-climbing"
-                      ? "bg-gradient-to-tl from-blue-200/30 to-transparent"
+                      ? "bg-gradient-to-tl from-blue-300/40 to-transparent"
                       : option.value === "simulated-annealing"
-                      ? "bg-gradient-to-tl from-orange-200/30 to-transparent"
-                      : "bg-gradient-to-tl from-green-200/30 to-transparent"
+                      ? "bg-gradient-to-tl from-orange-300/40 to-transparent"
+                      : "bg-gradient-to-tl from-green-300/40 to-transparent"
                   }`}
                 ></div>
               )}
@@ -181,7 +190,7 @@ export default function AlgorithmPanel({
 
       {/* ====== PARAMETERS ====== */}
       {showParams && (
-        <div className="mb-8 p-6 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 shadow-inner animate-in slide-in-from-top duration-300">
+        <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-gray-200 shadow-inner animate-in slide-in-from-top duration-300">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
             <h3 className="text-sm font-semibold text-gray-800">
@@ -374,16 +383,6 @@ export default function AlgorithmPanel({
               </span>
             </div>
           </>
-        )}
-
-        {/* Random Button if no history */}
-        {!history.length && (
-          <button
-            onClick={generateRandomLocations}
-            className="ml-auto px-6 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:scale-105 hover:shadow-lg hover:shadow-purple-300/50 transition-all duration-300 font-medium"
-          >
-            Random Locations
-          </button>
         )}
       </div>
     </div>

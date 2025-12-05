@@ -1,0 +1,12 @@
+[
+  {
+    "type": "Motor",
+    "count": 5,
+    "capacity": 30
+  },
+  {
+    "type": "Mobil",
+    "count": 0,
+    "capacity": 50
+  }
+]

@@ -1,12 +1,19 @@
 [
-    { "lat": -7.2575, "lng": 112.7521, "name": "Depot (Surabaya)" },
-    { "lat": -7.2655, "lng": 112.7428, "name": "Tunjungan Plaza" },
-    { "lat": -7.2695, "lng": 112.7515, "name": "Pasar Atom" },
-    { "lat": -7.2804, "lng": 112.7688, "name": "ITS Sukolilo" },
-    { "lat": -7.2889, "lng": 112.7806, "name": "Kenjeran" },
-    { "lat": -7.3136, "lng": 112.7283, "name": "Waru" },
-    { "lat": -7.2461, "lng": 112.7379, "name": "Gubeng" },
-    { "lat": -7.2954, "lng": 112.7376, "name": "Rungkut" },
-    { "lat": -7.2494, "lng": 112.7623, "name": "Wonokromo" },
-    { "lat": -7.2761, "lng": 112.7943, "name": "Sukolilo" }
+  {
+    "lat": -7.2575,
+    "lng": 112.7521,
+    "name": "Depot (Surabaya)"
+  },
+  {
+    "name": "Mulyorejo",
+    "lat": -7.271716455652787,
+    "lng": 112.7827319470743,
+    "demand": 20
+  },
+  {
+    "name": "Barak TNI AL",
+    "lat": -7.221651141679867,
+    "lng": 112.7151059155179,
+    "demand": 10
+  }
 ]
