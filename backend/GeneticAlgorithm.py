@@ -142,8 +142,8 @@ class VRPSolver:
                 "demand": route_demand
             })
     
-        # sort route based on demand
-        routes_with_demand.sort(key=lambda x: x["demand"], reverse=True)
+        # sort by utilization efficiency 
+        routes_with_demand.sort(key=lambda x: x["demand"] / self.bike_capacity, reverse=True)
         
         # assign vehicle
         routes_with_types = []
@@ -154,45 +154,40 @@ class VRPSolver:
             route = route_info["route"]
             demand = route_info["demand"]
             
-            # handle if all vehicle is used, will create more routes than the total vehicle (kena penalti di fitness nanti)
-            if cars_assigned >= self.car_count and bikes_assigned >= self.bike_count:
-                # all vehicles used, assign to whichever fits capacity best
+            # check availability
+            car_available = cars_assigned < self.car_count
+            bike_available = bikes_assigned < self.bike_count
+            
+            # try to assign to the right vehicle type
+            if demand <= self.bike_capacity and bike_available:
+                # fits in bike and bikes available, use bike
+                vehicle_type = "bike"
+                bikes_assigned += 1
+                
+            elif demand <= self.car_capacity and car_available:
+                # fits in car and cars available, use car
+                vehicle_type = "car"
+                cars_assigned += 1
+                
+            elif bike_available:
+                # only bikes left, use bike (will get penalty if over capacity)
+                vehicle_type = "bike"
+                bikes_assigned += 1
+                
+            elif car_available:
+                # only cars left, use car
+                vehicle_type = "car"
+                cars_assigned += 1
+                
+            else:
+                # assign to best-fit vehicle type, doesn't increment vehicle counter
                 if demand <= self.car_capacity:
                     vehicle_type = "car"
                 elif demand <= self.bike_capacity:
                     vehicle_type = "bike"
                 else:
-                    # neither fits, choose car (larger capacity, less penalty)
-                    vehicle_type = "car"
-            else:
-                # normal assignment
-                car_feasible = (demand <= self.car_capacity) and (cars_assigned < self.car_count)
-                bike_feasible = (demand <= self.bike_capacity) and (bikes_assigned < self.bike_count)
-                
-                # decision logic
-                if demand > self.bike_capacity:
-                    # use car
-                    vehicle_type = "car"
-                    cars_assigned += 1
-                elif not car_feasible:
-                    # no car left, use bike
-                    vehicle_type = "bike"
-                    bikes_assigned += 1
-                elif not bike_feasible:
-                    # no bikes left, use car
-                    vehicle_type = "car"
-                    cars_assigned += 1
-                else:
-                    # both feasible - choose based on utilization
-                    bike_util = demand / self.bike_capacity
-                    
-                    if bike_util >= 0.6:  # good utilization for bike
-                        vehicle_type = "bike"
-                        bikes_assigned += 1
-                    else:  # save bikes, use car
-                        vehicle_type = "car"
-                        cars_assigned += 1
-            
+                    vehicle_type = "car"  # choose car for smaller penalty
+        
             full_route = [self.depot_idx] + route + [self.depot_idx]
             routes_with_types.append({
                 "route": full_route,
@@ -394,6 +389,20 @@ class VRPSolver:
 def genetic_algorithm(dist_car, dist_bike, pop_size, generations, mutation_rate,
                       car_count, bike_count, car_capacity, bike_capacity, demands):
     
+    print(f"\n=== GENETIC ALGORITHM INPUTS ===")
+    print(f"Distance matrix size: {len(dist_car)}x{len(dist_car)}")
+    print(f"Number of customers: {len(demands) - 1}")  # -1 for depot
+    print(f"Demands: {demands}")
+    print(f"Vehicles: {car_count} cars, {bike_count} bikes")
+    print(f"Capacities: car={car_capacity}kg, bike={bike_capacity}kg")
+    print(f"GA params: pop={pop_size}, gen={generations}, mut={mutation_rate}")
+    
+    if len(demands) < 2:
+        raise ValueError(f"Not enough customers! Only {len(demands)-1} customers provided.")
+    
+    if len(dist_car) != len(demands):
+        raise ValueError(f"Distance matrix size ({len(dist_car)}) doesn't match demands ({len(demands)})")
+
     solver = VRPSolver(dist_car, dist_bike, pop_size, generations, mutation_rate,
                        car_count, bike_count, car_capacity, bike_capacity, demands)
     

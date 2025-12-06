@@ -67,7 +67,7 @@
   },
   {
     "lat": -7.3213,
-    "lng": 112.7280,
+    "lng": 112.728,
     "name": "Citraland Surabaya",
     "demand": 36
   },
@@ -106,12 +106,6 @@
     "lng": 112.7518,
     "name": "Stasiun Pasar Turi",
     "demand": 39
-  },
-  {
-    "lat": -7.2711,
-    "lng": 112.7208,
-    "name": "Royal Plaza",
-    "demand": 25
   },
   {
     "lat": -7.3152,
