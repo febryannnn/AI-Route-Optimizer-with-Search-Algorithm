@@ -2,18 +2,151 @@
   {
     "lat": -7.2575,
     "lng": 112.7521,
-    "name": "Depot (Surabaya)"
+    "name": "Depot (Surabaya)",
+    "demand": 0
   },
   {
-    "name": "Mulyorejo",
-    "lat": -7.271716455652787,
-    "lng": 112.7827319470743,
+    "lat": -7.2655,
+    "lng": 112.7428,
+    "name": "Tunjungan Plaza",
+    "demand": 35
+  },
+  {
+    "lat": -7.2695,
+    "lng": 112.7515,
+    "name": "Pasar Atom",
+    "demand": 28
+  },
+  {
+    "lat": -7.2804,
+    "lng": 112.7688,
+    "name": "ITS Sukolilo",
+    "demand": 42
+  },
+  {
+    "lat": -7.2889,
+    "lng": 112.7806,
+    "name": "Kenjeran Beach",
+    "demand": 50
+  },
+  {
+    "lat": -7.2461,
+    "lng": 112.7379,
+    "name": "Stasiun Gubeng",
+    "demand": 38
+  },
+  {
+    "lat": -7.2954,
+    "lng": 112.7376,
+    "name": "Rungkut Industrial",
+    "demand": 45
+  },
+  {
+    "lat": -7.2494,
+    "lng": 112.7623,
+    "name": "Wonokromo Plaza",
+    "demand": 32
+  },
+  {
+    "lat": -7.2761,
+    "lng": 112.7943,
+    "name": "Kampus ITS Sukolilo",
+    "demand": 40
+  },
+  {
+    "lat": -7.3336,
+    "lng": 112.7183,
+    "name": "The Vinyl Chick Cafe",
+    "demand": 15
+  },
+  {
+    "lat": -7.2571,
+    "lng": 112.7368,
+    "name": "Grand City Mall",
+    "demand": 48
+  },
+  {
+    "lat": -7.3213,
+    "lng": 112.7280,
+    "name": "Citraland Surabaya",
+    "demand": 36
+  },
+  {
+    "lat": -7.2647,
+    "lng": 112.7163,
+    "name": "Pakuwon Mall",
+    "demand": 44
+  },
+  {
+    "lat": -7.2826,
+    "lng": 112.7356,
+    "name": "Delta Plaza",
     "demand": 20
   },
   {
-    "name": "Barak TNI AL",
-    "lat": -7.221651141679867,
-    "lng": 112.7151059155179,
-    "demand": 10
+    "lat": -7.3055,
+    "lng": 112.7707,
+    "name": "Galaxy Mall",
+    "demand": 47
+  },
+  {
+    "lat": -7.2893,
+    "lng": 112.6513,
+    "name": "Bandara Juanda",
+    "demand": 30
+  },
+  {
+    "lat": -7.2608,
+    "lng": 112.7501,
+    "name": "Monumen Bambu Runcing",
+    "demand": 18
+  },
+  {
+    "lat": -7.2456,
+    "lng": 112.7518,
+    "name": "Stasiun Pasar Turi",
+    "demand": 39
+  },
+  {
+    "lat": -7.2711,
+    "lng": 112.7208,
+    "name": "Royal Plaza",
+    "demand": 25
+  },
+  {
+    "lat": -7.3152,
+    "lng": 112.7639,
+    "name": "Supermal Pakuwon Indah",
+    "demand": 46
+  },
+  {
+    "lat": -7.2383,
+    "lng": 112.7531,
+    "name": "Jembatan Merah Plaza",
+    "demand": 22
+  },
+  {
+    "lat": -7.2932,
+    "lng": 112.7958,
+    "name": "Pantai Ria Kenjeran",
+    "demand": 34
+  },
+  {
+    "lat": -7.3389,
+    "lng": 112.7733,
+    "name": "Kebun Binatang Surabaya",
+    "demand": 41
+  },
+  {
+    "lat": -7.2547,
+    "lng": 112.7684,
+    "name": "BG Junction",
+    "demand": 27
+  },
+  {
+    "lat": -7.2797,
+    "lng": 112.7447,
+    "name": "Pasar Atum Mall",
+    "demand": 24
   }
 ]

@@ -2,11 +2,11 @@
   {
     "type": "Motor",
     "count": 5,
-    "capacity": 30
+    "capacity": 50
   },
   {
     "type": "Mobil",
-    "count": 0,
-    "capacity": 50
+    "count": 6,
+    "capacity": 100
   }
 ]
