@@ -133,47 +133,98 @@ class VRPSolver:
         if current_route:
             routes.append(current_route)
 
+        # calc demand for each route
+        routes_with_demand = []
+        for route in routes:
+            route_demand = sum(self.demands[customer] for customer in route)
+            routes_with_demand.append({
+                "route": route,
+                "demand": route_demand
+            })
+    
+        # sort route based on demand
+        routes_with_demand.sort(key=lambda x: x["demand"], reverse=True)
+        
+        # assign vehicle
         routes_with_types = []
-        for i, route in enumerate(routes):
-            if i < self.car_count:
-                vehicle_type = "car"
+        cars_assigned = 0
+        bikes_assigned = 0
+        
+        for route_info in routes_with_demand:
+            route = route_info["route"]
+            demand = route_info["demand"]
+            
+            # handle if all vehicle is used, will create more routes than the total vehicle (kena penalti di fitness nanti)
+            if cars_assigned >= self.car_count and bikes_assigned >= self.bike_count:
+                # all vehicles used, assign to whichever fits capacity best
+                if demand <= self.car_capacity:
+                    vehicle_type = "car"
+                elif demand <= self.bike_capacity:
+                    vehicle_type = "bike"
+                else:
+                    # neither fits, choose car (larger capacity, less penalty)
+                    vehicle_type = "car"
             else:
-                vehicle_type = "bike"
-
+                # normal assignment
+                car_feasible = (demand <= self.car_capacity) and (cars_assigned < self.car_count)
+                bike_feasible = (demand <= self.bike_capacity) and (bikes_assigned < self.bike_count)
+                
+                # decision logic
+                if demand > self.bike_capacity:
+                    # use car
+                    vehicle_type = "car"
+                    cars_assigned += 1
+                elif not car_feasible:
+                    # no car left, use bike
+                    vehicle_type = "bike"
+                    bikes_assigned += 1
+                elif not bike_feasible:
+                    # no bikes left, use car
+                    vehicle_type = "car"
+                    cars_assigned += 1
+                else:
+                    # both feasible - choose based on utilization
+                    bike_util = demand / self.bike_capacity
+                    
+                    if bike_util >= 0.6:  # good utilization for bike
+                        vehicle_type = "bike"
+                        bikes_assigned += 1
+                    else:  # save bikes, use car
+                        vehicle_type = "car"
+                        cars_assigned += 1
+            
             full_route = [self.depot_idx] + route + [self.depot_idx]
             routes_with_types.append({
                 "route": full_route,
-                "type": vehicle_type
+                "type": vehicle_type,
+                "demand": demand
             })
 
         return routes_with_types
 
     def calculate_cost(self, routes_with_types):
-        """Calculate total cost with capacity penalty"""
         total = 0
         capacity_penalty = 0
         
-        for i, route_info in enumerate(routes_with_types):
+        for route_info in routes_with_types:
             route = route_info["route"]
             vtype = route_info["type"]
+            demand = route_info["demand"]
             
+            # select distance matrix based on vehicle type
             dist = self.dist_bike if vtype == "bike" else self.dist_car
             
             # calc route distance
             for j in range(len(route) - 1):
                 total += dist[route[j]][route[j+1]]
             
-            # calc capacity violation
-            route_demand = sum(self.demands[customer] for customer in route if customer != 0)
+            # get capacity based on vehicle type
+            capacity = self.bike_capacity if vtype == "bike" else self.car_capacity
             
-            if i < len(self.vehicle_capacities):
-                capacity = self.vehicle_capacities[i]
-            else:
-                capacity = self.bike_capacity
-            
-            if route_demand > capacity:
-                capacity_penalty += (route_demand - capacity) * 10000
-        
+            # check capacity violation
+            if demand > capacity:
+                capacity_penalty += (demand - capacity) * 10000
+    
         return total + capacity_penalty
 
     def fitness(self, chrom):
@@ -181,11 +232,6 @@ class VRPSolver:
         cost = self.calculate_cost(routes)
 
         num_routes = len(routes)
-        
-        # penalites
-        if num_routes < self.total_vehicles:
-            penalty = 100000 * (self.total_vehicles - num_routes)
-            cost += penalty
         
         if num_routes > self.total_vehicles:
             penalty = 50000 * (num_routes - self.total_vehicles)
@@ -261,7 +307,7 @@ class VRPSolver:
 
     def inversion_mutation(self, chrom):
         if random.random() < self.mutation_rate:
-            mutation_type = random.choice(['inversion', 'move_separator'])
+            mutation_type = random.choice(['inversion', 'move_separator', 'swap'])
             
             if mutation_type == 'inversion':
                 customer_indices = [i for i, g in enumerate(chrom) if g != -1]
@@ -276,7 +322,7 @@ class VRPSolver:
                     segment.reverse()
                     for idx, val in zip(segment_indices, segment):
                         chrom[idx] = val
-            
+        
             elif mutation_type == 'move_separator' and self.total_vehicles > 1:
                 sep_indices = [i for i, g in enumerate(chrom) if g == -1]
                 if sep_indices:
@@ -286,6 +332,12 @@ class VRPSolver:
                     if customer_indices:
                         new_pos = random.choice(customer_indices)
                         chrom.insert(new_pos, -1)
+        
+            elif mutation_type == 'swap':
+                customer_indices = [i for i, g in enumerate(chrom) if g != -1]
+                if len(customer_indices) >= 2:
+                    i, j = random.sample(customer_indices, 2)
+                    chrom[i], chrom[j] = chrom[j], chrom[i]
 
         return chrom
 
@@ -337,7 +389,7 @@ class VRPSolver:
             population = new_pop
         
         final_routes = self.decode_chrom(best_chrom)
-        return final_routes, best_cost/1000, history
+        return final_routes, best_cost, history
 
 def genetic_algorithm(dist_car, dist_bike, pop_size, generations, mutation_rate,
                       car_count, bike_count, car_capacity, bike_capacity, demands):
