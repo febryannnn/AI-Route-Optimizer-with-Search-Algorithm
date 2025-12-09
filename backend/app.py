@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from enum import Enum
+from GeneticAlgorithm import genetic_algorithm
 import requests
 import random
 import math
@@ -791,273 +792,6 @@ def simulated_annealing_mv(dist_car, dist_bike, demands, vehicles, max_iter, tem
 
     return flattened_routes, best_cost, history, vehicle_list
 
-
-# ==================================================================
-# Genetic Algorithm
-# ==================================================================
-def genetic_algorithm(dist_car, dist_bike, demands, vehicles, pop_size, generations, mutation_rate, car_count, bike_count):
-    
-    n_location = len(dist_car)
-    depot_idx = 0
-    customer_locations = list(range(1, n_location))
-    total_vehicles = car_count + bike_count
-
-    def generate_chrom():
-        route = customer_locations[:]
-        random.shuffle(route)
-
-        if total_vehicles <= 1 or len(route) < total_vehicles:
-            return route
-
-        n_separators = min(total_vehicles - 1, len(route) - 1)
-
-        max_separators = len(route) - 1
-        if n_separators > max_separators:
-            n_separators = max_separators
-
-        separator_pos = sorted(random.sample(range(1, len(route)), n_separators))
-
-        chrom = []
-        prev = 0
-        for pos in separator_pos:
-            chrom.extend(route[prev:pos])
-            chrom.append(-1)
-            prev = pos
-        chrom.extend(route[prev:])
-
-        return chrom 
-
-    def generate_population(population_size: int):
-        return [generate_chrom() for _ in range(population_size)]
-    
-    def decode_chrom(chrom):
-        routes = []
-        current_route = []
-
-        for gene in chrom:
-            if gene == -1:
-                if current_route:
-                    routes.append(current_route)
-                    current_route = []
-            else:
-                current_route.append(gene)
-        
-        if current_route:
-            routes.append(current_route)
-
-        routes_with_types = []
-        for i, route in enumerate(routes):
-            vehicle_types = 0 if i < car_count else 1
-            full_route = [depot_idx] + route + [depot_idx]
-            routes_with_types.append((full_route, vehicle_types))
-
-        return routes_with_types
-    
-    def calculate_cost(routes_with_types):
-        total_distance = 0
-        
-        for route, v_type_code in routes_with_types:
-            # 1. Determine Capacity
-            current_capacity = 0
-            # v_type_code 1 = Bike (motor), 0 = Car (mobil)
-            target_type = "motor" if v_type_code == 1 else "mobil"
-            
-            # Find capacity in the vehicles list
-            for v in vehicles:
-                 if v["type"].lower() == target_type:
-                     current_capacity = v["capacity"]
-                     break
-            
-            # 2. Simulate the Drive (Check Capacity)
-            current_load = 0
-            stops = route[1:-1] # Ignore start/end depot for simulation loop
-            
-            if not stops: continue
-
-            last_node = 0 
-            dist_matrix = dist_bike if v_type_code == 1 else dist_car
-
-            for customer in stops:
-                demand = demands[customer]
-                
-                # If adding this customer exceeds capacity, go back to depot first
-                if current_load + demand > current_capacity:
-                    total_distance += dist_matrix[last_node][0] # Trip to depot
-                    last_node = 0
-                    current_load = 0 # Refill
-                
-                # Go to customer
-                total_distance += dist_matrix[last_node][customer]
-                current_load += demand
-                last_node = customer
-            
-            # Return to depot at the end
-            total_distance += dist_matrix[last_node][0]
-
-        return total_distance
-
-    def fitness(chrom):
-        routes = decode_chrom(chrom)
-        cost = calculate_cost(routes)
-
-        num_routes = len(routes)
-        if num_routes < total_vehicles:
-            penalty = 100000 * (total_vehicles - num_routes)
-            cost += penalty
-        
-        return 1 / (1 + cost)
-
-    def aex_crossover(parent1, parent2):
-        p1_customer = [g for g in parent1 if g != -1]
-        p2_customer = [g for g in parent2 if g != -1]
-
-        if len(p1_customer) < 2:
-            return parent1[:]
-        
-        # adjacency list customer location
-        def build_edge(tour):
-            edges = {}
-            for i in range(len(tour)):
-                current = tour[i]
-                next_city = tour[(i + 1) % len(tour)]
-                if current not in edges:
-                    edges[current] = []
-                edges[current].append(next_city)
-            return edges
-        
-        edges_p1 = build_edge(p1_customer)
-        edges_p2 = build_edge(p2_customer)
-
-        child = []
-        current = random.choice(p1_customer)
-        child.append(current)
-        visited = {current}
-        
-        use_parent1 = True 
-        
-        while len(child) < len(p1_customer):
-            edges = edges_p1 if use_parent1 else edges_p2
-            
-            candidates = [city for city in edges.get(current, []) if city not in visited]
-            
-            if candidates:
-                next_city = candidates[0]
-            else:
-                # if no next loc, random from p1
-                unvisited = [city for city in p1_customer if city not in visited]
-                if not unvisited:
-                    break
-                next_city = unvisited[0]
-            
-            child.append(next_city)
-            visited.add(next_city)
-            current = next_city
-            use_parent1 = not use_parent1
-        
-        # reinsert separators
-        if total_vehicles > 1 and len(child) > total_vehicles:
-            num_separators = total_vehicles - 1
-            separator_positions = sorted(random.sample(range(1, len(child)), num_separators))
-            
-            chromosome = []
-            prev = 0
-            for pos in separator_positions:
-                chromosome.extend(child[prev:pos])
-                chromosome.append(-1)
-                prev = pos
-            chromosome.extend(child[prev:])
-            return chromosome
-        else:
-            return child
-
-    def inversion_mutation(chrom):
-        if random.random() < mutation_rate:
-            mutation_type = random.choice(['inversion', 'move_separator'])
-            
-            if mutation_type == 'inversion':
-                customer_indices = [i for i, g in enumerate(chrom) if g != -1]
-                
-                if len(customer_indices) >= 2:
-                    # pick 2 points
-                    i, j = sorted(random.sample(customer_indices, 2))
-                    
-                    # extract segmen
-                    segment = []
-                    segment_indices = []
-                    for idx in range(i, j + 1):
-                        if chrom[idx] != -1:
-                            segment.append(chrom[idx])
-                            segment_indices.append(idx)
-                    
-                    # reverse segment
-                    segment.reverse()
-                    
-                    # put segment back
-                    for idx, val in zip(segment_indices, segment):
-                        chrom[idx] = val
-            
-            elif mutation_type == 'move_separator' and total_vehicles > 1:
-                # move separator
-                sep_indices = [i for i, g in enumerate(chrom) if g == -1]
-                if sep_indices:
-                    sep_idx = random.choice(sep_indices)
-                    chrom.pop(sep_idx)
-                    # insert at new pos
-                    customer_indices = [i for i, g in enumerate(chrom) if g != -1]
-                    if customer_indices:
-                        new_pos = random.choice(customer_indices)
-                        chrom.insert(new_pos, -1)
-        
-        return chrom
-
-    population = generate_population(pop_size)
-    history = []
-    best_chrom = None
-    best_cost = float("inf")
-
-    for gen in range(generations):
-        scored = [(ind, fitness(ind)) for ind in population]
-        scored.sort(key=lambda x: x[1], reverse=True)
-
-        best = scored[0][0]
-        routes = decode_chrom(best)
-        cost = calculate_cost(routes)
-
-        if cost < best_cost:
-            best_cost = cost
-            best_chrom = best[:]
-
-        if gen % 5 == 0:
-            car_routes = sum(1 for _, vtype in routes if vtype == 0)
-            bike_routes = sum(1 for _, vtype in routes if vtype == 1)
-            history.append({
-                "iteration": gen,
-                "cost": best_cost,
-                "carsUsed": car_routes,
-                "bikesUsed": bike_routes
-            })
-
-        # new pop with selection and elitism
-        new_pop = [best]
-        
-        while len(new_pop) < pop_size:
-            # tournament selections
-            parents = random.sample(scored[:max(15, pop_size // 3)], 2)
-            p1, _ = parents[0]
-            p2, _ = parents[1]
-
-            child = aex_crossover(p1, p2)
-            
-            child = inversion_mutation(child)
-            
-            new_pop.append(child)
-
-        population = new_pop
-    
-    final_routes = decode_chrom(best_chrom)
-
-    return final_routes, best_cost, history
-
 # TABU SEARCH
 import random
 import math
@@ -1670,32 +1404,66 @@ def solve(algorithm):
             })
         
         elif algorithm == "genetic":
+            vehicles = params.get("vehicles", [])
+            car_count = 0
+            bike_count = 0
+            car_capacity = 100  # default capacity
+            bike_capacity = 50   # default capacity
+
+            for vehicle in vehicles:
+                vtype = vehicle.get("type", "").lower()
+                count = vehicle.get("count", 1)
+                cap = vehicle.get("capacity", 0)
+
+                if vtype in ["car", "mobil"]:
+                    car_count = count
+                    if cap > 0:
+                        car_capacity = cap
+                elif vtype in ["bike", "motor", "motorcycle"]:
+                    bike_count = count
+                    if cap > 0:
+                        bike_capacity = cap
+
+            # default value
+            if car_count == 0 and bike_count == 0:
+                car_count = 2
+                bike_count = 1
+
+            demands = [0] + [loc.get("demand", 0) for loc in locations[1:]]
+
             routes_with_types, cost, history = genetic_algorithm(
                 dist_car,
                 dist_bike,
-                params["populationSize"], 
-                params["generations"], 
-                params["mutationRate"],
-                params.get("carCount", 2),
-                params.get("bikeCount", 1)
+                params.get("populationSize", 50),
+                params.get("generations", 100),
+                params.get("mutationRate", 0.05),
+                car_count,
+                bike_count,
+                car_capacity,    
+                bike_capacity,   
+                demands
             )
-            
+
             vehicle_routes = []
             vehicle_paths = []
             vehicle_types = []
             
-            for route, vehicle_type in routes_with_types:
-                route_method = ROUTE_METHOD.BIKE if vehicle_type == 1 else ROUTE_METHOD.CAR
-                
+            for route_info in routes_with_types:
+                route = route_info["route"]
+                vtype = route_info["type"]
+                vehicle_types.append(vtype)
+
                 route_locations = [locations[i] for i in route]
                 vehicle_routes.append(route_locations)
-                vehicle_types.append("bike" if vehicle_type == 1 else "car")
-                
+
+                method = ROUTE_METHOD.BIKE if vtype.lower() == "bike" else ROUTE_METHOD.CAR
+        
                 path = []
                 for i in range(len(route) - 1):
                     p1 = locations[route[i]]
-                    p2 = locations[route[i+1]]
-                    path.extend(osrm_route_path(p1, p2, route_method))
+                    p2 = locations[route[i + 1]]
+                    path.extend(osrm_route_path(p1, p2, method))
+
                 vehicle_paths.append(path)
             
             return jsonify({
