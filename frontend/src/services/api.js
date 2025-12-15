@@ -63,7 +63,7 @@ export const api = {
 
   solveTabuSearch: async (locations, params = {}) => {
     try {
-      const response = await fetch(`${API_URL}/api/solve/simulated-annealing`, {
+      const response = await fetch(`${API_URL}/api/solve/tabu-search`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -72,20 +72,19 @@ export const api = {
           locations,
           params: {
             vehicles: params.vehicles,
-            initialTemp: params.initialTemp || 1000,
-            coolingRate: params.coolingRate || 0.995,
             maxIterations: params.maxIterations || 500,
+            tabuTenure: params.tabuTenure || 20,
           },
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to solve with Simulated Annealing");
+        throw new Error("Failed to solve with Tabu Search");
       }
 
       return await response.json();
     } catch (error) {
-      console.error("Simulated Annealing error:", error);
+      console.error("Tabu Search error:", error);
       throw error;
     }
   },

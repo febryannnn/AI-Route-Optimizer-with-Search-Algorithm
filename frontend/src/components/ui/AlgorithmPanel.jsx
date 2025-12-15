@@ -1,5 +1,4 @@
-// src/components/AlgorithmPanel.jsx
-import { Zap, Play, Pause, RotateCcw, Settings } from "lucide-react";
+import { Zap, Play, Pause, RotateCcw, Settings, Eye, EyeOff } from "lucide-react";
 
 export default function AlgorithmPanel({
   algorithm,
@@ -24,10 +23,13 @@ export default function AlgorithmPanel({
   startVisualization,
   stopVisualization,
 }) {
+  const hasResults = history.length > 0;
+
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg border border-gray-200 p-8 mb-6 backdrop-blur-sm">
+    <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg border border-gray-200 p-6 mb-6 backdrop-blur-sm">
+      
       {/* ====== ALGORITHM SELECTION ====== */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
           <label className="text-base font-semibold text-gray-800">
@@ -35,119 +37,52 @@ export default function AlgorithmPanel({
           </label>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-3">
           {algorithmOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => setAlgorithm(option.value)}
-              className={`group relative overflow-hidden p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
+              className={`group relative overflow-hidden w-full p-4 rounded-xl border-2 transition-all duration-300 transform ${
                 algorithm === option.value
-                  ? option.value === "hill-climbing"
-                    ? "border-blue-400 bg-gradient-to-br from-blue-100 via-blue-200/50 to-indigo-200/60 shadow-xl shadow-blue-200/60"
+                  ? option.value === "tabu-search"
+                    ? "border-purple-400 bg-purple-50 shadow-md scale-[1.01]"
                     : option.value === "simulated-annealing"
-                    ? "border-orange-400 bg-gradient-to-br from-orange-100 via-orange-200/50 to-red-200/60 shadow-xl shadow-orange-200/60"
-                    : "border-green-400 bg-gradient-to-br from-green-100 via-green-200/50 to-emerald-200/60 shadow-xl shadow-green-200/60"
-                  : "border-gray-200 hover:border-gray-300 bg-white shadow-sm hover:shadow-md"
+                    ? "border-orange-400 bg-orange-50 shadow-md scale-[1.01]"
+                    : "border-green-400 bg-green-50 shadow-md scale-[1.01]"
+                  : "border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50"
               }`}
             >
-              {/* Gradient overlay on hover - More vibrant */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-r ${option.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
-              ></div>
-
-              {/* Accent bar - Lebih vibrant dan tebal */}
-              <div
-                className={`absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r ${
-                  option.color
-                } transform transition-all duration-300 ${
-                  algorithm === option.value
-                    ? "scale-x-100 opacity-100 shadow-lg"
-                    : "scale-x-0 group-hover:scale-x-100 group-hover:opacity-80"
-                }`}
-              ></div>
-
-              {/* Content */}
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl bg-gradient-to-r ${
-                      option.color
-                    } flex items-center justify-center shadow-lg transition-all duration-300 ${
-                      algorithm === option.value
-                        ? "shadow-2xl scale-110 ring-2 ring-white"
-                        : "group-hover:scale-105 group-hover:shadow-xl"
-                    }`}
-                  >
-                    <Zap
-                      size={20}
-                      className={`text-white transition-transform duration-300 ${
-                        algorithm === option.value ? "animate-pulse" : ""
-                      }`}
-                    />
-                  </div>
-
-                  {algorithm === option.value && (
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center animate-pulse ${
-                        option.value === "hill-climbing"
-                          ? "bg-blue-600 shadow-xl shadow-blue-400/60 ring-2 ring-blue-200"
-                          : option.value === "simulated-annealing"
-                          ? "bg-orange-600 shadow-xl shadow-orange-400/60 ring-2 ring-orange-200"
-                          : "bg-green-600 shadow-xl shadow-green-400/60 ring-2 ring-green-200"
-                      }`}
-                    >
-                      <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                    </div>
-                  )}
+              <div className="relative z-10 flex items-center w-full pl-2">
+                {/* ICON */}
+                <div
+                  className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${
+                    option.color
+                  } flex items-center justify-center shadow-md mr-4 text-white`}
+                >
+                  <Zap size={20} className={algorithm === option.value ? "animate-pulse" : ""} />
                 </div>
 
-                <div className="text-left">
-                  <div
-                    className={`text-sm font-bold mb-1 transition-colors duration-300 ${
-                      algorithm === option.value
-                        ? option.value === "hill-climbing"
-                          ? "text-blue-800"
-                          : option.value === "simulated-annealing"
-                          ? "text-orange-800"
-                          : "text-green-800"
-                        : "text-gray-900"
-                    }`}
-                  >
+                {/* TEKS */}
+                <div className="text-left flex-1 min-w-0">
+                  <div className={`text-sm font-bold ${
+                      algorithm === option.value ? "text-gray-900" : "text-gray-600"
+                    }`}>
                     {option.label}
                   </div>
-                  <div
-                    className={`text-xs font-medium ${
-                      algorithm === option.value
-                        ? option.value === "hill-climbing"
-                          ? "text-blue-600"
-                          : option.value === "simulated-annealing"
-                          ? "text-orange-600"
-                          : "text-green-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {option.value === "hill-climbing" &&
-                      "Fast local optimization"}
-                    {option.value === "simulated-annealing" &&
-                      "Temperature-based search"}
-                    {option.value === "genetic" &&
-                      "Evolution-inspired approach"}
+                  <div className="text-xs text-gray-500 font-medium">
+                    {option.value === "tabu-search" && "Local search method for optimization"}
+                    {option.value === "simulated-annealing" && "Temperature-based search"}
+                    {option.value === "genetic" && "Evolution-inspired approach"}
                   </div>
                 </div>
-              </div>
 
-              {/* Corner decoration when selected - More visible */}
-              {algorithm === option.value && (
-                <div
-                  className={`absolute bottom-0 right-0 w-20 h-20 rounded-tl-full ${
-                    option.value === "hill-climbing"
-                      ? "bg-gradient-to-tl from-blue-300/40 to-transparent"
-                      : option.value === "simulated-annealing"
-                      ? "bg-gradient-to-tl from-orange-300/40 to-transparent"
-                      : "bg-gradient-to-tl from-green-300/40 to-transparent"
-                  }`}
-                ></div>
-              )}
+                {/* INDIKATOR AKTIF */}
+                {algorithm === option.value && (
+                  <div className="ml-3 flex-shrink-0">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+                  </div>
+                )}
+              </div>
             </button>
           ))}
         </div>
@@ -156,219 +91,160 @@ export default function AlgorithmPanel({
       {/* ====== PARAMETER TOGGLE ====== */}
       <button
         onClick={() => setShowParams(!showParams)}
-        className="group flex items-center gap-3 px-5 py-3 text-sm font-medium text-gray-700 hover:text-blue-600 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl mb-6 transition-all duration-300 shadow-sm hover:shadow-md"
+        className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl mb-6 hover:bg-gray-50 transition-colors"
       >
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center group-hover:from-blue-500 group-hover:to-indigo-500 transition-all duration-300">
-          <Settings
-            size={16}
-            className="text-blue-600 group-hover:text-white transition-colors duration-300"
-          />
+        <div className="flex items-center gap-2">
+          <Settings size={16} />
+          <span>{showParams ? "Hide" : "Show"} Advanced Parameters</span>
         </div>
-        <span>{showParams ? "Hide" : "Show"} Advanced Parameters</span>
-        <div
-          className={`ml-auto transform transition-transform duration-300 ${
-            showParams ? "rotate-180" : ""
-          }`}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M4 6L8 10L12 6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+        <div className={`transform transition-transform duration-300 ${showParams ? "rotate-180" : ""}`}>
+           ▼
         </div>
       </button>
 
-      {/* ====== PARAMETERS ====== */}
+      {/* ====== PARAMETERS INPUT ====== */}
       {showParams && (
-        <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-gray-200 shadow-inner animate-in slide-in-from-top duration-300">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <h3 className="text-sm font-semibold text-gray-800">
-              Algorithm Parameters
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Hill Climbing + SA */}
+        <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100 grid grid-cols-1 gap-3 animate-in fade-in slide-in-from-top-2">
             {algorithm !== "genetic" && (
-              <div className="group">
-                <label className="block text-xs font-medium text-gray-600 mb-2">
-                  Max Iterations
-                </label>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Max Iterations</label>
                 <input
                   type="number"
                   value={params.maxIterations}
-                  onChange={(e) =>
-                    setParams({
-                      ...params,
-                      maxIterations: parseInt(e.target.value),
-                    })
-                  }
-                  className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  onChange={(e) => setParams({ ...params, maxIterations: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
             )}
-
-            {/* Simulated Annealing */}
+            {algorithm === "tabu-search" && (
+             <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Tabu Tenure</label>
+                <input
+                  type="number"
+                  value={params.tabuTenure || 10}
+                  onChange={(e) => setParams({ ...params, tabuTenure: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                />
+              </div>
+            )}
             {algorithm === "simulated-annealing" && (
               <>
-                <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
-                    Initial Temperature
-                  </label>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Initial Temp</label>
                   <input
                     type="number"
                     value={params.initialTemp}
-                    onChange={(e) =>
-                      setParams({
-                        ...params,
-                        initialTemp: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    onChange={(e) => setParams({ ...params, initialTemp: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
                   />
                 </div>
-
-                <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
-                    Cooling Rate
-                  </label>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Cooling Rate</label>
                   <input
                     type="number"
                     step="0.001"
                     value={params.coolingRate}
-                    onChange={(e) =>
-                      setParams({
-                        ...params,
-                        coolingRate: parseFloat(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    onChange={(e) => setParams({ ...params, coolingRate: parseFloat(e.target.value) })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
                   />
                 </div>
               </>
             )}
-
-            {/* Genetic Algorithm */}
             {algorithm === "genetic" && (
               <>
-                <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
-                    Population Size
-                  </label>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Population Size</label>
                   <input
                     type="number"
                     value={params.populationSize}
-                    onChange={(e) =>
-                      setParams({
-                        ...params,
-                        populationSize: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                    onChange={(e) => setParams({ ...params, populationSize: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
                   />
                 </div>
-
-                <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
-                    Generations
-                  </label>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Generations</label>
                   <input
                     type="number"
                     value={params.generations}
-                    onChange={(e) =>
-                      setParams({
-                        ...params,
-                        generations: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                  />
-                </div>
-
-                <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
-                    Mutation Rate
-                  </label>
-                  <input
-                    type="number"
-                    value={params.mutationRate}
-                    onChange={(e) =>
-                      setParams({
-                        ...params,
-                        mutationRate: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                    onChange={(e) => setParams({ ...params, generations: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
                   />
                 </div>
               </>
             )}
-          </div>
         </div>
       )}
 
-      {/* ====== ACTION BUTTONS ====== */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <button
-          onClick={solveRoute}
-          disabled={solving || locations.length < 3}
-          className="group relative overflow-hidden flex items-center gap-3 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:scale-105 hover:shadow-lg hover:shadow-blue-300/50 disabled:opacity-60 disabled:hover:scale-100 transition-all duration-300"
-        >
-          <Zap size={20} className={solving ? "animate-spin" : ""} />
-          <span className="font-medium">
-            {solving ? "Processing..." : "Optimize Route"}
-          </span>
-        </button>
-
-        {vehicleRoutes.length > 0 && (
+      {/* ====== ACTION BUTTONS AREA (RAPID LAYOUT) ====== */}
+      <div className="flex flex-col gap-3">
+        
+        {/* ROW 1: OPTIMIZE & VISUALIZE (Grid 2 Kolom) */}
+        <div className={`grid gap-3 ${hasResults ? "grid-cols-2" : "grid-cols-1"}`}>
+          {/* Tombol Optimize */}
           <button
-            onClick={isVisualizing ? stopVisualization : startVisualization}
-            className={`px-6 py-3.5 rounded-xl font-medium transition-all duration-300 ${
-              isVisualizing
-                ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg shadow-red-300/50 hover:scale-105"
-                : "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg shadow-purple-300/50 hover:scale-105"
-            }`}
+            onClick={solveRoute}
+            disabled={solving || locations.length < 3}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
           >
-            {isVisualizing ? "Stop Visualization" : "🚗 Visualize Route"}
+            <Zap size={18} className={solving ? "animate-spin" : ""} />
+            {solving ? "Processing..." : "Optimize"}
           </button>
-        )}
 
-        {/* Controls when history exists */}
-        {history.length > 0 && (
+          {/* Tombol Visualize (Hanya muncul jika ada hasil) */}
+          {hasResults && (
+            <button
+              onClick={isVisualizing ? stopVisualization : startVisualization}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all shadow-sm ${
+                isVisualizing
+                  ? "bg-red-500 text-white hover:bg-red-600"
+                  : "bg-purple-600 text-white hover:bg-purple-700"
+              }`}
+            >
+              {isVisualizing ? <EyeOff size={18} /> : <Eye size={18} />}
+              {isVisualizing ? "Stop" : "Visualize"}
+            </button>
+          )}
+        </div>
+
+        {/* CONTROLS (Hanya muncul jika ada history) */}
+        {hasResults && (
           <>
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="group relative overflow-hidden flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:scale-105 hover:shadow-lg hover:shadow-green-300/50 transition-all duration-300"
-            >
-              {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-              <span className="font-medium">
+            {/* ROW 2: PLAY & RESET (Grid 2 Kolom) */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all shadow-sm ${
+                    isPlaying 
+                    ? "bg-amber-500 text-white hover:bg-amber-600"
+                    : "bg-emerald-500 text-white hover:bg-emerald-600"
+                }`}
+              >
+                {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                 {isPlaying ? "Pause" : "Play"}
-              </span>
-            </button>
+              </button>
 
-            <button
-              onClick={() => setCurrentIteration(0)}
-              className="group relative flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:scale-105 hover:shadow-lg hover:shadow-gray-400/50 transition-all duration-300"
-            >
-              <RotateCcw size={20} />
-              <span className="font-medium">Reset</span>
-            </button>
+              <button
+                onClick={() => {
+                    setIsPlaying(false);
+                    setCurrentIteration(0);
+                }}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all shadow-sm font-medium"
+              >
+                <RotateCcw size={18} />
+                Reset
+              </button>
+            </div>
 
-            <div className="flex items-center gap-4 ml-auto px-5 py-3 bg-white border border-gray-200 rounded-xl shadow-sm">
-              <label className="text-xs font-medium text-gray-600">
-                Speed:
-              </label>
+            {/* ROW 3: SPEED SLIDER (Full Width) */}
+            <div className="bg-gray-100 p-3 rounded-xl border border-gray-200 mt-1">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Animation Speed
+                </label>
+                <span className="text-xs font-mono font-medium bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-700">
+                  {playSpeed}ms
+                </span>
+              </div>
               <input
                 type="range"
                 min="50"
@@ -376,11 +252,12 @@ export default function AlgorithmPanel({
                 step="50"
                 value={playSpeed}
                 onChange={(e) => setPlaySpeed(parseInt(e.target.value))}
-                className="w-32 h-2 bg-gray-200 rounded-lg accent-blue-600"
+                className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
-              <span className="text-xs font-semibold text-gray-900 w-16 text-right">
-                {playSpeed}ms
-              </span>
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1 px-0.5">
+                <span>Fast</span>
+                <span>Slow</span>
+              </div>
             </div>
           </>
         )}
