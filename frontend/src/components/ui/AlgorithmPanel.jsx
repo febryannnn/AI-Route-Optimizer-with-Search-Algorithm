@@ -26,6 +26,7 @@ export default function AlgorithmPanel({
 }) {
   return (
     <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg border border-gray-200 p-8 mb-6 backdrop-blur-sm">
+      
       {/* ====== ALGORITHM SELECTION ====== */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
@@ -35,78 +36,66 @@ export default function AlgorithmPanel({
           </label>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* LAYOUT: Vertical Stack (Ke Bawah) */}
+        <div className="flex flex-col gap-3">
           {algorithmOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => setAlgorithm(option.value)}
-              className={`group relative overflow-hidden p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
+              className={`group relative overflow-hidden w-full p-4 rounded-xl border-2 transition-all duration-300 transform hover:shadow-lg ${
                 algorithm === option.value
-                  ? option.value === "hill-climbing"
-                    ? "border-blue-400 bg-gradient-to-br from-blue-100 via-blue-200/50 to-indigo-200/60 shadow-xl shadow-blue-200/60"
+                  ? option.value === "tabu-search" // <--- GANTI JADI TABU SEARCH
+                    ? "border-purple-400 bg-gradient-to-r from-purple-50 to-purple-100/50 shadow-md shadow-purple-200/60 scale-[1.01]"
                     : option.value === "simulated-annealing"
-                    ? "border-orange-400 bg-gradient-to-br from-orange-100 via-orange-200/50 to-red-200/60 shadow-xl shadow-orange-200/60"
-                    : "border-green-400 bg-gradient-to-br from-green-100 via-green-200/50 to-emerald-200/60 shadow-xl shadow-green-200/60"
-                  : "border-gray-200 hover:border-gray-300 bg-white shadow-sm hover:shadow-md"
+                    ? "border-orange-400 bg-gradient-to-r from-orange-50 to-orange-100/50 shadow-md shadow-orange-200/60 scale-[1.01]"
+                    : "border-green-400 bg-gradient-to-r from-green-50 to-green-100/50 shadow-md shadow-green-200/60 scale-[1.01]"
+                  : "border-gray-200 hover:border-gray-300 bg-white shadow-sm hover:scale-[1.01]"
               }`}
             >
-              {/* Gradient overlay on hover - More vibrant */}
+              {/* Gradient overlay on hover */}
               <div
-                className={`absolute inset-0 bg-gradient-to-r ${option.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
+                className={`absolute inset-0 bg-gradient-to-r ${option.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
               ></div>
 
-              {/* Accent bar - Lebih vibrant dan tebal */}
+              {/* Accent bar (Kiri) */}
               <div
-                className={`absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r ${
+                className={`absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b ${
                   option.color
                 } transform transition-all duration-300 ${
                   algorithm === option.value
-                    ? "scale-x-100 opacity-100 shadow-lg"
-                    : "scale-x-0 group-hover:scale-x-100 group-hover:opacity-80"
+                    ? "scale-y-100 opacity-100"
+                    : "scale-y-0 group-hover:scale-y-100 group-hover:opacity-80"
                 }`}
               ></div>
 
-              {/* Content */}
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl bg-gradient-to-r ${
-                      option.color
-                    } flex items-center justify-center shadow-lg transition-all duration-300 ${
-                      algorithm === option.value
-                        ? "shadow-2xl scale-110 ring-2 ring-white"
-                        : "group-hover:scale-105 group-hover:shadow-xl"
+              {/* Content Container */}
+              <div className="relative z-10 flex items-center w-full pl-2">
+                
+                {/* 1. ICON */}
+                <div
+                  className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${
+                    option.color
+                  } flex items-center justify-center shadow-md transition-all duration-300 mr-4 ${
+                    algorithm === option.value
+                      ? "shadow-lg scale-110 ring-2 ring-white"
+                      : "group-hover:scale-105"
+                  }`}
+                >
+                  <Zap
+                    size={20}
+                    className={`text-white transition-transform duration-300 ${
+                      algorithm === option.value ? "animate-pulse" : ""
                     }`}
-                  >
-                    <Zap
-                      size={20}
-                      className={`text-white transition-transform duration-300 ${
-                        algorithm === option.value ? "animate-pulse" : ""
-                      }`}
-                    />
-                  </div>
-
-                  {algorithm === option.value && (
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center animate-pulse ${
-                        option.value === "hill-climbing"
-                          ? "bg-blue-600 shadow-xl shadow-blue-400/60 ring-2 ring-blue-200"
-                          : option.value === "simulated-annealing"
-                          ? "bg-orange-600 shadow-xl shadow-orange-400/60 ring-2 ring-orange-200"
-                          : "bg-green-600 shadow-xl shadow-green-400/60 ring-2 ring-green-200"
-                      }`}
-                    >
-                      <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                    </div>
-                  )}
+                  />
                 </div>
 
-                <div className="text-left">
+                {/* 2. TEKS (JUDUL & DESKRIPSI) */}
+                <div className="text-left flex-1 min-w-0">
                   <div
-                    className={`text-sm font-bold mb-1 transition-colors duration-300 ${
+                    className={`text-sm font-bold transition-colors duration-300 ${
                       algorithm === option.value
-                        ? option.value === "hill-climbing"
-                          ? "text-blue-800"
+                        ? option.value === "tabu-search" // <--- TEXT COLOR PURPLE
+                          ? "text-purple-800"
                           : option.value === "simulated-annealing"
                           ? "text-orange-800"
                           : "text-green-800"
@@ -116,35 +105,50 @@ export default function AlgorithmPanel({
                     {option.label}
                   </div>
                   <div
-                    className={`text-xs font-medium ${
+                    className={`text-xs font-medium truncate ${
                       algorithm === option.value
-                        ? option.value === "hill-climbing"
-                          ? "text-blue-600"
+                        ? option.value === "tabu-search"
+                          ? "text-purple-600"
                           : option.value === "simulated-annealing"
                           ? "text-orange-600"
                           : "text-green-600"
                         : "text-gray-500"
                     }`}
                   >
-                    {option.value === "hill-climbing" &&
-                      "Fast local optimization"}
-                    {option.value === "simulated-annealing" &&
-                      "Temperature-based search"}
-                    {option.value === "genetic" &&
-                      "Evolution-inspired approach"}
+                    {/* <--- DESKRIPSI DIPERBAIKI DISINI */}
+                    {option.value === "tabu-search" && "Local search method for optimization"}
+                    {option.value === "simulated-annealing" && "Temperature-based search"}
+                    {option.value === "genetic" && "Evolution-inspired approach"}
                   </div>
                 </div>
+
+                {/* 3. INDIKATOR AKTIF */}
+                {algorithm === option.value && (
+                  <div className="ml-3 flex-shrink-0">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center animate-pulse ${
+                        option.value === "tabu-search"
+                          ? "bg-purple-100 text-purple-600"
+                          : option.value === "simulated-annealing"
+                          ? "bg-orange-100 text-orange-600"
+                          : "bg-green-100 text-green-600"
+                      }`}
+                    >
+                      <div className={`w-2.5 h-2.5 rounded-full currentColor bg-current`}></div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Corner decoration when selected - More visible */}
+              {/* Background Decoration */}
               {algorithm === option.value && (
                 <div
-                  className={`absolute bottom-0 right-0 w-20 h-20 rounded-tl-full ${
-                    option.value === "hill-climbing"
-                      ? "bg-gradient-to-tl from-blue-300/40 to-transparent"
+                  className={`absolute bottom-0 right-0 w-32 h-32 rounded-tl-full opacity-10 pointer-events-none ${
+                    option.value === "tabu-search"
+                      ? "bg-purple-500"
                       : option.value === "simulated-annealing"
-                      ? "bg-gradient-to-tl from-orange-300/40 to-transparent"
-                      : "bg-gradient-to-tl from-green-300/40 to-transparent"
+                      ? "bg-orange-500"
+                      : "bg-green-500"
                   }`}
                 ></div>
               )}
@@ -153,7 +157,7 @@ export default function AlgorithmPanel({
         </div>
       </div>
 
-      {/* ====== PARAMETER TOGGLE ====== */}
+      {/* ====== PARAMETER TOGGLE (TIDAK BERUBAH) ====== */}
       <button
         onClick={() => setShowParams(!showParams)}
         className="group flex items-center gap-3 px-5 py-3 text-sm font-medium text-gray-700 hover:text-blue-600 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl mb-6 transition-all duration-300 shadow-sm hover:shadow-md"
@@ -188,9 +192,10 @@ export default function AlgorithmPanel({
         </div>
       </button>
 
+      {/* ====== PARAMETERS (SESUAIKAN LOGIKA TABU) ====== */}
       {/* ====== PARAMETERS ====== */}
       {showParams && (
-        <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-gray-200 shadow-inner animate-in slide-in-from-top duration-300">
+        <div className="mb-8 p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-gray-200 shadow-inner animate-in slide-in-from-top duration-300">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
             <h3 className="text-sm font-semibold text-gray-800">
@@ -198,11 +203,13 @@ export default function AlgorithmPanel({
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Hill Climbing + SA */}
+          {/* PERBAIKAN DISINI: Gunakan grid-cols-1 (1 kolom) agar rapi di sidebar */}
+          <div className="grid grid-cols-1 gap-3">
+            
+            {/* Tabu Search + SA (Shared param: Iterations) */}
             {algorithm !== "genetic" && (
               <div className="group">
-                <label className="block text-xs font-medium text-gray-600 mb-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1">
                   Max Iterations
                 </label>
                 <input
@@ -214,7 +221,27 @@ export default function AlgorithmPanel({
                       maxIterations: parseInt(e.target.value),
                     })
                   }
-                  className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+              </div>
+            )}
+
+            {/* Tabu Search Specific Params */}
+            {algorithm === "tabu-search" && (
+             <div className="group">
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Tabu List Size
+                </label>
+                <input
+                  type="number"
+                  value={params.tabuListSize || 10}
+                  onChange={(e) =>
+                    setParams({
+                      ...params,
+                      tabuListSize: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                 />
               </div>
             )}
@@ -223,8 +250,8 @@ export default function AlgorithmPanel({
             {algorithm === "simulated-annealing" && (
               <>
                 <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
-                    Initial Temperature
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Initial Temp
                   </label>
                   <input
                     type="number"
@@ -235,12 +262,12 @@ export default function AlgorithmPanel({
                         initialTemp: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                   />
                 </div>
 
                 <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Cooling Rate
                   </label>
                   <input
@@ -253,7 +280,7 @@ export default function AlgorithmPanel({
                         coolingRate: parseFloat(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                   />
                 </div>
               </>
@@ -263,7 +290,7 @@ export default function AlgorithmPanel({
             {algorithm === "genetic" && (
               <>
                 <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Population Size
                   </label>
                   <input
@@ -275,12 +302,12 @@ export default function AlgorithmPanel({
                         populationSize: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                    className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                   />
                 </div>
 
                 <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Generations
                   </label>
                   <input
@@ -292,12 +319,12 @@ export default function AlgorithmPanel({
                         generations: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                    className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                   />
                 </div>
 
                 <div className="group">
-                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Mutation Rate
                   </label>
                   <input
@@ -309,7 +336,7 @@ export default function AlgorithmPanel({
                         mutationRate: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-2.5 text-sm bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                    className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                   />
                 </div>
               </>
@@ -318,7 +345,7 @@ export default function AlgorithmPanel({
         </div>
       )}
 
-      {/* ====== ACTION BUTTONS ====== */}
+      {/* ====== ACTION BUTTONS (TIDAK BERUBAH) ====== */}
       <div className="flex flex-wrap gap-3 items-center">
         <button
           onClick={solveRoute}
