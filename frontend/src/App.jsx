@@ -95,7 +95,7 @@ function MapUpdater({ center, zoom }) {
 function App() {
 
     const [locations, setLocations] = useState([]);
-    const [algorithm, setAlgorithm] = useState("hill-climbing");
+    const [algorithm, setAlgorithm] = useState("tabu-search");
     const [solving, setSolving] = useState(false);
     const [currentIteration, setCurrentIteration] = useState(0);
     const [history, setHistory] = useState([]);
@@ -339,7 +339,6 @@ function App() {
         [
           "simulated-annealing",
           "genetic",
-          "hill-climbing",
           "tabu-search",
         ].includes(algorithm)
       ) {
@@ -379,10 +378,11 @@ function App() {
               mutationRate: saParams.mutationRate,
             });
             break;
-          case "hill-climbing":
-            data = await solveHillClimbing(locations, {
+          case "tabu-search":
+            data = await api.solveTabuSearch(locations, {
               vehicles: vehicles,
               maxIterations: saParams.maxIterations,
+              tabuTenure: saParams.tabuTenure,
             });
             break;
           default:
@@ -483,9 +483,9 @@ function App() {
 
   const algorithmOptions = [
     {
-      value: "hill-climbing",
-      label: "Hill Climbing",
-      color: "from-blue-500 to-cyan-500",
+      value: "tabu-search",
+      label: "Tabu Search",
+      color: "from-purple-500 to-indigo-500",
     },
     {
       value: "simulated-annealing",
@@ -499,389 +499,209 @@ function App() {
     },
   ];
 
+  const iterationVisualization =
+    chartData.length > 0 && vehicleRoutes.length > 0
+      ? vehicleRoutes.map((route, vIdx) => {
+          const color = vehicleColors[vIdx % vehicleColors.length];
+          return {
+            label: `${vehicleTypes[vIdx] || "Vehicle"} ${vIdx + 1}`,
+            color,
+            route,
+          };
+        })
+      : [];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-800">
       <Navbar locations={locations} />
 
-      {/* Main Content */}
-      <main className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-[1600px] mx-auto w-full p-4 sm:p-6 space-y-8">
+        
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded-lg">
-            <p>{error}</p>
+          <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r shadow-sm flex items-center animate-pulse">
+            <span className="mr-2">⚠️</span> {error}
           </div>
         )}
 
-        {/* Control Panel */}
-        <AlgorithmPanel
-          algorithm={algorithm}
-          setAlgorithm={setAlgorithm}
-          showParams={showParams}
-          setShowParams={setShowParams}
-          params={params}
-          setParams={setParams}
-          solving={solving}
-          locations={locations}
-          history={history}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-          currentIteration={currentIteration}
-          setCurrentIteration={setCurrentIteration}
-          playSpeed={playSpeed}
-          setPlaySpeed={setPlaySpeed}
-          solveRoute={solveRoute}
-          algorithmOptions={algorithmOptions}
-          vehicleRoutes={vehicleRoutes}
-          isVisualizing={isVisualizing}
-          startVisualization={startVisualization}
-          stopVisualization={stopVisualization}
-        />
-
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Sidebar */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Location Manager */}
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-5">
-                Manage Locations
-              </h3>
-
-              <div className="space-y-4">
-                {/* Name Input */}
-                <input
-                  type="text"
-                  placeholder="Location Name"
-                  value={newLocation.name}
-                  onChange={(e) =>
-                    setNewLocation({ ...newLocation, name: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-xl
-                 focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500 outline-none 
-                 transition-all shadow-sm"
-                />
-
-                {/* Lat - Lng Input */}
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="number"
-                    step="0.0001"
-                    placeholder="Latitude"
-                    value={newLocation.lat}
-                    onChange={(e) =>
-                      setNewLocation({ ...newLocation, lat: e.target.value })
-                    }
-                    className="px-4 py-2.5 text-sm border border-gray-300 rounded-xl
-                   focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500 
-                   outline-none transition-all shadow-sm"
-                  />
-                  <input
-                    type="number"
-                    step="0.0001"
-                    placeholder="Longitude"
-                    value={newLocation.lng}
-                    onChange={(e) =>
-                      setNewLocation({ ...newLocation, lng: e.target.value })
-                    }
-                    className="px-4 py-2.5 text-sm border border-gray-300 rounded-xl
-                   focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500 
-                   outline-none transition-all shadow-sm"
-                  />
-                </div>
-
-                {/* Add Location Button */}
-                <button
-                  onClick={handleOpenLocationPicker}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 
-                 bg-green-600 text-white text-sm font-medium rounded-xl 
-                 hover:bg-green-700 active:scale-[0.98] transition-all shadow-sm"
-                >
-                  <Plus size={16} />
-                  <span>Add Location</span>
-                </button>
-
-                <LocationPickerModal
-                  isOpen={showLocationPicker}
-                  onClose={() => setShowLocationPicker(false)}
-                  onSave={handleSaveNewLocation}
-                  initialCenter={[-7.2575, 112.7521]}
-                />
-              </div>
-
-              {/* Location List */}
-              <div className="mt-6 max-h-80 overflow-y-auto space-y-2 pr-1">
+        {/* =========================================
+            SECTION 1: INPUT DATA (Locations & Fleet)
+            Posisi: Paling Atas
+           ========================================= */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* A. MANAGE LOCATIONS */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 h-full flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <MapPin size={20} className="text-red-500" />
+                  Locations Input
+                </h3>
+                <span className="bg-gray-100 text-gray-600 py-1 px-2 rounded text-xs font-bold">{locations.length}</span>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto max-h-[250px] space-y-2 pr-2 mb-4 custom-scrollbar">
                 {locations.map((loc, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-3 
-                   bg-gray-50 rounded-xl border border-gray-200
-                   hover:bg-gray-100 transition-all shadow-sm"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 truncate">
-                        {loc.name}
+                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors group">
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-800 text-sm truncate">{loc.name}</div>
+                        <div className="text-xs text-gray-500">{loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}</div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
-                      </div>
-                    </div>
-
-                    {idx > 0 && (
-                      <button
-                        onClick={() => handleDeleteLocation(loc)}
-                        className="ml-3 text-red-500 hover:text-red-700 
-                       p-1 rounded-lg transition-all hover:bg-red-50"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    )}
+                      {idx > 0 && (
+                        <button onClick={() => handleDeleteLocation(loc)} className="text-gray-300 hover:text-red-500 transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                   </div>
                 ))}
-              </div>
             </div>
 
-            {/* Add Vehicle */}
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 transform hover:scale-[1.01] transition-all duration-300">
-              {/* Header */}
-              <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Car className="text-white" size={24} />
-                  </div>
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    Add Vehicle
-                  </h3>
-                </div>
-                <p className="text-gray-500 text-sm ml-15">
-                  Manage your fleet vehicles
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {/* Type Select */}
-                <div className="relative group">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vehicle Type
-                  </label>
-                  <select
-                    value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value)}
-                    className="w-full px-5 py-2 text-base border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 bg-gray-50 hover:bg-white appearance-none cursor-pointer"
-                  >
-                    <option value="Mobil">🚗 Mobil</option>
-                    <option value="Motor">🏍️ Motor</option>
-                  </select>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none" />
-                </div>
-
-                {/* Count Input */}
-                <div className="relative group">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Jumlah Kendaraan
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={vehicleCount}
-                    onChange={(e) => setVehicleCount(e.target.value)}
-                    className="w-full px-5 py-2 text-base border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 bg-gray-50 hover:bg-white"
-                  />
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-focus-within:opacity-10 transition-opacity pointer-events-none" />
-                </div>
-
-                {/* Update Button */}
-                <button
-                  onClick={() =>
-                    handleUpdateVehicle({
-                      type: vehicleType,
-                      count: vehicleCount,
-                    })
-                  }
-                  className="w-full flex items-center justify-center gap-3 px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-base rounded-2xl hover:from-blue-600 hover:to-indigo-700 transform hover:scale-[1.02] hover:shadow-xl transition-all duration-300 shadow-lg"
-                >
-                  <Plus size={20} strokeWidth={2.5} />
-                  <span>Update Kendaraan</span>
-                </button>
-              </div>
-
-              {/* Divider */}
-              <div className="relative my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t-2 border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white px-4 text-sm font-medium text-gray-500">
-                    Current Vehicles
-                  </span>
-                </div>
-              </div>
-
-              {/* Vehicles List */}
-              <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-                {vehicles.length === 0 && (
-                  <div className="text-center py-12 text-gray-400">
-                    <Car size={48} className="mx-auto mb-4 opacity-30" />
-                    <p className="text-base font-medium">Belum ada kendaraan</p>
-                    <p className="text-sm opacity-75">
-                      Tambahkan kendaraan pertama Anda
-                    </p>
-                  </div>
-                )}
-
-                {vehicles.map((v) => (
-                  <div
-                    key={v.id}
-                    className="group flex items-center justify-between p-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border-2 border-transparent hover:border-blue-200 hover:shadow-md transform hover:scale-[1.02]"
-                  >
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      {/* Vehicle Icon */}
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300">
-                        <Car className="text-white" size={18} />
-                      </div>
-
-                      {/* Vehicle Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-base font-semibold text-gray-900 capitalize truncate group-hover:text-blue-600 transition-colors">
-                          {v.type}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Jumlah:{" "}
-                          <span className="font-semibold text-blue-600">
-                            {v.count}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleDeleteVehicle(v.id)}
-                      className="ml-4 text-gray-400 hover:text-red-500 p-2.5 rounded-xl hover:bg-red-50 transition-all duration-300 opacity-0 group-hover:opacity-100 transform hover:scale-110"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Final Results */}
-            {/* Final Results */}
-
-            {(finalRoute || vehicleRoutes.length > 0) && (
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200 p-5">
-                <h3 className="text-lg text-gray-900 mb-4">Final Results</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Algorithm</span>
-                    <span className="text-sm text-gray-900 capitalize">
-                      {algorithm.replace("-", " ")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">
-                      Total Distance
-                    </span>
-                    <span className="text-lg text-blue-600">
-                      {(finalCost / 1000).toFixed(2)} km
-                    </span>
-                  </div>
-                  {totalVehicles > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">
-                        Vehicles Used
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        {totalVehicles} vehicle(s)
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Iterations</span>
-                    <span className="text-sm text-gray-900">
-                      {history[history.length - 1]?.iteration}
-                    </span>
-                  </div>
-
-                  {/* Vehicle breakdown untuk genetic algorithm */}
-                  {vehicleTypes.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-blue-200">
-                      <div className="text-xs text-gray-600 mb-2">
-                        Vehicle Routes:
-                      </div>
-                      {vehicleRoutes.map((route, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between py-1.5 px-2 bg-white rounded-lg mb-1"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{
-                                backgroundColor:
-                                  vehicleColors[idx % vehicleColors.length],
-                              }}
-                            ></div>
-                            <span className="text-xs text-gray-700 capitalize">
-                              {vehicleTypes[idx]} {idx + 1}
-                            </span>
-                          </div>
-                          <span className="text-xs text-gray-500">
-                            {route.length - 2} stop(s)
-                          </span>
-                        </div>
-                      ))}
-                      <button
-                        onClick={() => setShowScheduleModal(true)}
-                        className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-colors shadow-sm"
-                      >
-                        View Schedule
-                      </button>
-                      {/* Schedule Modal */}
-                      <ScheduleModal
-                        isOpen={showScheduleModal}
-                        onClose={() => setShowScheduleModal(false)}
-                        vehicleRoutes={vehicleRoutes}
-                        vehicleTypes={vehicleTypes}
-                        finalCost={finalCost}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            <button 
+              onClick={handleOpenLocationPicker}
+              className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
+            >
+                <Plus size={16} /> Add New Location
+            </button>
+            <LocationPickerModal
+              isOpen={showLocationPicker}
+              onClose={() => setShowLocationPicker(false)}
+              onSave={handleSaveNewLocation}
+              initialCenter={[-7.2575, 112.7521]}
+            />
           </div>
 
-          {/* Map Section */}
-          <div className="lg:col-span-9">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Map Header */}
-              <div className="px-5 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-                <h2 className="text-lg">Route Visualization</h2>
-                {currentState && (
-                  <div className="mt-1 text-sm opacity-90">
-                    Iteration: {currentState.iteration} | Cost:{" "}
-                    {currentState.cost?.toFixed(4) || "N/A"}
-                    {currentState.temperature &&
-                      ` | Temp: ${currentState.temperature.toFixed(2)}`}
+          {/* B. MANAGE VEHICLES */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 h-full">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Car size={20} className="text-green-600" />
+                Fleet Manager
+            </h3>
+
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                      <label className="text-xs font-medium text-gray-500 mb-1 block">Type</label>
+                      <select 
+                        value={vehicleType}
+                        onChange={(e) => setVehicleType(e.target.value)}
+                        className="w-full p-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      >
+                        <option value="Mobil">Mobil</option>
+                        <option value="Motor">Motor</option>
+                      </select>
                   </div>
+                  <div>
+                      <label className="text-xs font-medium text-gray-500 mb-1 block">Count</label>
+                      <input 
+                        type="number" min="1" 
+                        value={vehicleCount}
+                        onChange={(e) => setVehicleCount(e.target.value)}
+                        className="w-full p-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleUpdateVehicle({ type: vehicleType, count: vehicleCount })}
+                  className="w-full py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Update / Add Vehicle
+                </button>
+            </div>
+
+            <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                {vehicles.map((v) => (
+                  <div key={v.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${v.type === 'Mobil' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                            <Car size={18} />
+                        </div>
+                        <div>
+                            <div className="font-semibold text-sm text-gray-800">{v.type}</div>
+                            <div className="text-xs text-gray-500">Count: <span className="font-bold">{v.count}</span></div>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteVehicle(v.id)}
+                        className="text-gray-300 hover:text-red-500 transition-colors"
+                      >
+                        <Trash size={16} />
+                      </button>
+                  </div>
+                ))}
+                {vehicles.length === 0 && <div className="text-center text-xs text-gray-400 py-2">No vehicles added yet</div>}
+            </div>
+          </div>
+        </div>
+
+        {/* =========================================
+            SECTION 2: ALGORITHM & MAP (Bersebelahan)
+            Posisi: Tengah
+           ========================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+          
+          {/* A. ALGORITHM CONTROL (Kiri - Lebar 4 Kolom) */}
+          <div className="lg:col-span-4 flex flex-col">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 h-full">
+              <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <Settings size={20} className="text-blue-600" />
+                Algorithm Config
+              </h3>
+              
+              <AlgorithmPanel
+                algorithm={algorithm}
+                setAlgorithm={setAlgorithm}
+                showParams={showParams}
+                setShowParams={setShowParams}
+                params={params}
+                setParams={setParams}
+                solving={solving}
+                locations={locations}
+                history={history}
+                isPlaying={isPlaying}
+                setIsPlaying={setIsPlaying}
+                currentIteration={currentIteration}
+                setCurrentIteration={setCurrentIteration}
+                playSpeed={playSpeed}
+                setPlaySpeed={setPlaySpeed}
+                solveRoute={solveRoute}
+                algorithmOptions={algorithmOptions}
+                vehicleRoutes={vehicleRoutes}
+                isVisualizing={isVisualizing}
+                startVisualization={startVisualization}
+                stopVisualization={stopVisualization}
+              />
+            </div>
+          </div>
+
+          {/* B. MAP VISUALIZATION (Kanan - Lebar 8 Kolom) */}
+          <div className="lg:col-span-8 flex flex-col h-full">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col min-h-[500px]">
+              <div className="px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-800">Route Map</h2>
+                  <p className="text-sm text-gray-500">
+                    Live visualization
+                  </p>
+                </div>
+                {currentState && (
+                   <div className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-mono text-gray-600 border border-gray-200">
+                      Iter: {currentState.iteration} | Cost: {currentState.cost?.toFixed(2)}
+                   </div>
                 )}
               </div>
 
-              {/* Map Container */}
-              <div style={{ height: "900px" }}>
+              <div className="relative flex-1">
                 <MapContainer
                   center={[-7.2575, 112.7521]}
                   zoom={12}
                   style={{ height: "100%", width: "100%" }}
+                  className="z-0"
                 >
                   <MapUpdater center={[-7.2575, 112.7521]} zoom={12} />
                   <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                     attribution="&copy; OpenStreetMap contributors"
                   />
-
                   {locations.map((loc, idx) => (
                     <Marker
                       key={idx}
@@ -889,41 +709,18 @@ function App() {
                       icon={idx === 0 ? depotIcon : deliveryIcon}
                     >
                       <Popup>
-                        <div>
-                          <div className="text-sm text-gray-900">
-                            {loc.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
-                          </div>
-                        </div>
+                        <div className="font-semibold">{loc.name}</div>
+                        <div className="text-xs text-gray-500">Demand: {loc.demand || 0}</div>
                       </Popup>
                     </Marker>
                   ))}
-
-                  {getOSRMPolyline().length > 0 && (
-                    <Polyline
-                      positions={getOSRMPolyline()}
-                      color="#3b82f6"
-                      weight={3}
-                      opacity={0.8}
-                    />
-                  )}
-
-                  {/* Multi-vehicle routes untuk genetic algorithm */}
                   {vehiclePaths.length > 0 &&
                     vehiclePaths.map((path, idx) => {
                       if (!path || path.length === 0) return null;
-
-                      // Convert [lng, lat] -> [lat, lng]
-                      const positions = path.map((coord) => [
-                        coord[1],
-                        coord[0],
-                      ]);
-
+                      const positions = path.map((coord) => [coord[1], coord[0]]);
                       return (
                         <Polyline
-                          key={`vehicle-${idx}`}
+                          key={`v-${idx}`}
                           positions={positions}
                           color={vehicleColors[idx % vehicleColors.length]}
                           weight={4}
@@ -931,120 +728,85 @@ function App() {
                         />
                       );
                     })}
-
-                  {/* Single vehicle route untuk algorithm lain */}
-                  {finalRoute?.length > 0 &&
-                    (Array.isArray(finalRoute[0]) ? (
-                      finalRoute.map((route, idx) => (
-                        <Polyline
-                          key={idx}
-                          positions={route.map((n) => [n.lat, n.lng])}
-                          color="#f59e0b"
-                          weight={3}
-                          opacity={0.8}
-                        />
-                      ))
-                    ) : (
-                      <Polyline
-                        positions={finalRoute.map((n) => [n.lat, n.lng])}
-                        color="#f59e0b"
-                        weight={3}
-                        opacity={0.8}
-                      />
-                    ))}
-
-                  {/* Animated vehicle markers */}
-                  {isVisualizing &&
-                    vehiclePositions.map((vPos, idx) => (
-                      <Marker
-                        key={`vehicle-${idx}`}
-                        position={vPos.position}
-                        icon={
-                          vehicleTypes[idx] === "Mobil"
-                            ? carAnimIcon
-                            : motorAnimIcon
-                        }
-                        zIndexOffset={1000}
-                      >
-                        <Popup>
-                          <div className="text-sm">
-                            <div className="font-semibold capitalize">
-                              {vehicleTypes[idx]} {idx + 1}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              En route...
-                            </div>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    ))}
+                  {isVisualizing && vehiclePositions.map((vPos, idx) => (
+                    <Marker
+                      key={`anim-${idx}`}
+                      position={vPos.position}
+                      icon={vehicleTypes[idx] === "Mobil" ? carAnimIcon : motorAnimIcon}
+                      zIndexOffset={1000}
+                    />
+                  ))}
                 </MapContainer>
               </div>
-              {chartData.length > 0 && (
-                <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-                  <h3 className="text-lg text-gray-900 mb-4">
-                    Optimization Progress
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis
-                        dataKey="iteration"
-                        tick={{ fontSize: 12 }}
-                        stroke="#6b7280"
-                      />
-                      <YAxis
-                        yAxisId="left"
-                        tick={{ fontSize: 12 }}
-                        stroke="#6b7280"
-                      />
-                      {algorithm === "simulated-annealing" && (
-                        <YAxis
-                          yAxisId="right"
-                          orientation="right"
-                          tick={{ fontSize: 12 }}
-                          stroke="#6b7280"
-                        />
-                      )}
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "white",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "8px",
-                          fontSize: "12px",
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: "12px" }} />
-                      <Line
-                        yAxisId="left"
-                        type="monotone"
-                        dataKey="cost"
-                        stroke="#3b82f6"
-                        strokeWidth={2}
-                        dot={false}
-                        name="Cost"
-                      />
-                      {algorithm === "simulated-annealing" && (
-                        <Line
-                          yAxisId="right"
-                          type="monotone"
-                          dataKey="temperature"
-                          stroke="#ef4444"
-                          strokeWidth={2}
-                          dot={false}
-                          name="Temperature"
-                        />
-                      )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
             </div>
           </div>
+
         </div>
+
+        {/* =========================================
+            SECTION 3: PROGRESS OPTIMIZATION
+            Posisi: Paling Bawah
+           ========================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[400px]">
+          
+          {/* CHART (Kiri - Lebar 8 Kolom) */}
+          <div className="lg:col-span-8 h-full">
+             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 h-full flex flex-col">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                   <Zap size={20} className="text-amber-500" />
+                   Optimization Progress
+                </h3>
+                <div className="flex-1 w-full min-h-0">
+                  {chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis dataKey="iteration" hide />
+                        <YAxis stroke="#94a3b8" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{borderRadius: '8px', border:'none', boxShadow:'0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+                        />
+                        <Line type="monotone" dataKey="cost" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                       <Play size={32} className="mb-2 opacity-50" />
+                       <span className="text-sm">Run algorithm to see chart</span>
+                    </div>
+                  )}
+                </div>
+             </div>
+          </div>
+
+          {/* STATS / FINAL RESULT (Kanan - Lebar 4 Kolom) */}
+          <div className="lg:col-span-4 h-full flex flex-col gap-6">
+             {(finalCost !== null || vehicleRoutes.length > 0) ? (
+                <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 shadow-sm flex-1 flex flex-col justify-center">
+                    <h4 className="text-sm font-semibold text-blue-800 uppercase tracking-wider mb-6 border-b border-blue-200 pb-2">Final Results</h4>
+                    <div className="space-y-6">
+                        <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                           <div className="text-xs text-gray-500 mb-1">Total Distance</div>
+                           <div className="text-3xl font-bold text-blue-700">{(finalCost / 1000).toFixed(2)} <span className="text-base font-normal text-gray-500">km</span></div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                           <div className="text-xs text-gray-500 mb-1">Total Vehicles Used</div>
+                           <div className="text-3xl font-bold text-green-600">{totalVehicles} <span className="text-base font-normal text-gray-500">Units</span></div>
+                        </div>
+                    </div>
+                </div>
+             ) : (
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 h-full flex flex-col items-center justify-center text-center text-gray-400">
+                  <Settings size={40} className="mb-3 opacity-20" />
+                  <p>Results will appear here<br/>after optimization</p>
+                </div>
+             )}
+          </div>
+
+        </div>
+
       </main>
     </div>
   );
 }
-
 export default App;
