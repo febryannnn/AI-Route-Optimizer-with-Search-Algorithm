@@ -105,7 +105,7 @@ export default function AlgorithmPanel({
       {/* ====== PARAMETERS INPUT ====== */}
       {showParams && (
         <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100 grid grid-cols-1 gap-3 animate-in fade-in slide-in-from-top-2">
-            {algorithm !== "genetic" && (
+            {algorithm !== "genetic" && algorithm !== "simulated-annealing" && (
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Max Iterations</label>
                 <input

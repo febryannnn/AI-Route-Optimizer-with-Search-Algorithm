@@ -112,7 +112,7 @@ function App() {
           const path = vehiclePaths[vIdx];
           if (!path || vPos.pathIndex >= path.length - 1) return vPos;
 
-          let newSegmentProgress = vPos.segmentProgress + 0.5;
+          let newSegmentProgress = vPos.segmentProgress + 1;
           let newPathIndex = vPos.pathIndex;
 
           if (newSegmentProgress >= 1) {
@@ -171,7 +171,7 @@ function App() {
 
   const startVisualization = () => {
     if (!vehiclePaths || vehiclePaths.length === 0) {
-      alert("Solve route terlebih dahulu dengan Genetic Algorithm!");
+      showErrorPopup("Solve route terlebih dahulu dengan Genetic Algorithm!", "success");
       return;
     }
 
@@ -224,11 +224,11 @@ function App() {
       const savedLocation = await api.saveLocation(newLocation);
       setLocations((prev) => [...prev, savedLocation]);
       setShowLocationPicker(false);
-      alert(`Location "${newLocation.name}" saved successfully!`);
+      showErrorPopup(`Location "${newLocation.name}" saved successfully!`, 'success');
       window.location.reload();
     } catch (error) {
       console.error("Error saving location:", error);
-      alert("Failed to save location. Please try again.");
+      showErrorPopup("Failed to save location. Please try again.", "error");
     }
   };
 
@@ -236,9 +236,9 @@ function App() {
     try {
       await api.deleteLocation(locationData);
       setIsDeleted(true);
-      alert(`Deleted: ${locationData.name}`);
+      showErrorPopup(`Deleted: ${locationData.name}`,"success");
     } catch (error) {
-      alert("Failed to delete location. Please try again.");
+      showErrorPopup("Failed to delete location. Please try again.", 'error');
     }
   };
 

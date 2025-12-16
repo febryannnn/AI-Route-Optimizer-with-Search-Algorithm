@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Plus, Trash2 } from "lucide-react";
+import { MapPin, Plus, Trash2, Image as ImageIcon } from "lucide-react";
 
 const LocationManager = ({
   locations,
@@ -22,20 +22,63 @@ const LocationManager = ({
         {locations.map((loc, idx) => (
           <div
             key={idx}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors group"
+            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors group"
           >
-            <div className="min-w-0">
+            {/* Photo Thumbnail */}
+            <div className="flex-shrink-0">
+              {loc.photo ? (
+                <img
+                  src={loc.photo}
+                  alt={loc.name}
+                  className="w-30 h-20 rounded-lg object-cover border-2 border-gray-200"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "";
+                    e.target.style.display = "none";
+                  }}
+                />
+              ) : (
+                <div
+                  className={`w-12 h-12 rounded-lg bg-gradient-to-br ${
+                    idx === 0
+                      ? "from-red-100 to-red-200"
+                      : "from-blue-100 to-blue-200"
+                  } flex items-center justify-center`}
+                >
+                  {idx === 0 ? (
+                    <span className="text-xl">🏭</span>
+                  ) : (
+                    <MapPin size={20} className="text-blue-600" />
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Location Info */}
+            <div className="flex-1 min-w-0">
               <div className="font-medium text-gray-800 text-sm truncate">
                 {loc.name}
               </div>
-              <div className="text-xs text-gray-500">
-                {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>
+                  {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+                </span>
+                {loc.demand > 0 && (
+                  <>
+                    <span>•</span>
+                    <span className="font-semibold text-blue-600">
+                      {loc.demand} units
+                    </span>
+                  </>
+                )}
               </div>
             </div>
+
+            {/* Delete Button */}
             {idx > 0 && (
               <button
                 onClick={() => onDeleteLocation(loc)}
-                className="text-gray-300 hover:text-red-500 transition-colors"
+                className="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors p-1.5 hover:bg-red-50 rounded-lg"
               >
                 <Trash2 size={16} />
               </button>

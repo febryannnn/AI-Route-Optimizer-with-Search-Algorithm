@@ -3,144 +3,168 @@
     "lat": -7.2575,
     "lng": 112.7521,
     "name": "Depot (Surabaya)",
-    "demand": 0
+    "demand": 0,
+    "photo": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2655,
     "lng": 112.7428,
     "name": "Tunjungan Plaza",
-    "demand": 35
+    "demand": 35,
+    "photo": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2695,
     "lng": 112.7515,
     "name": "Pasar Atom",
-    "demand": 28
+    "demand": 28,
+    "photo": "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2804,
     "lng": 112.7688,
     "name": "ITS Sukolilo",
-    "demand": 42
+    "demand": 42,
+    "photo": "https://images.unsplash.com/photo-1562774053-701939374585?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2889,
     "lng": 112.7806,
     "name": "Kenjeran Beach",
-    "demand": 50
+    "demand": 50,
+    "photo": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2461,
     "lng": 112.7379,
     "name": "Stasiun Gubeng",
-    "demand": 38
+    "demand": 38,
+    "photo": "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2954,
     "lng": 112.7376,
     "name": "Rungkut Industrial",
-    "demand": 45
+    "demand": 45,
+    "photo": "https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2494,
     "lng": 112.7623,
     "name": "Wonokromo Plaza",
-    "demand": 32
+    "demand": 32,
+    "photo": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2761,
     "lng": 112.7943,
     "name": "Kampus ITS Sukolilo",
-    "demand": 40
+    "demand": 40,
+    "photo": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.3336,
     "lng": 112.7183,
     "name": "The Vinyl Chick Cafe",
-    "demand": 15
+    "demand": 15,
+    "photo": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2571,
     "lng": 112.7368,
     "name": "Grand City Mall",
-    "demand": 48
+    "demand": 48,
+    "photo": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.3213,
     "lng": 112.728,
     "name": "Citraland Surabaya",
-    "demand": 36
+    "demand": 36,
+    "photo": "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2647,
     "lng": 112.7163,
     "name": "Pakuwon Mall",
-    "demand": 44
+    "demand": 44,
+    "photo": "https://images.unsplash.com/photo-1555529902-5261145633bf?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2826,
     "lng": 112.7356,
     "name": "Delta Plaza",
-    "demand": 20
+    "demand": 20,
+    "photo": "https://images.unsplash.com/photo-1567958451986-2de427a4a0be?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.3055,
     "lng": 112.7707,
     "name": "Galaxy Mall",
-    "demand": 47
+    "demand": 47,
+    "photo": "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2893,
     "lng": 112.6513,
     "name": "Bandara Juanda",
-    "demand": 30
+    "demand": 30,
+    "photo": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2608,
     "lng": 112.7501,
     "name": "Monumen Bambu Runcing",
-    "demand": 18
+    "demand": 18,
+    "photo": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2456,
     "lng": 112.7518,
     "name": "Stasiun Pasar Turi",
-    "demand": 39
+    "demand": 39,
+    "photo": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.3152,
     "lng": 112.7639,
     "name": "Supermal Pakuwon Indah",
-    "demand": 46
+    "demand": 46,
+    "photo": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2383,
     "lng": 112.7531,
     "name": "Jembatan Merah Plaza",
-    "demand": 22
+    "demand": 22,
+    "photo": "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2932,
     "lng": 112.7958,
     "name": "Pantai Ria Kenjeran",
-    "demand": 34
+    "demand": 34,
+    "photo": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.3389,
     "lng": 112.7733,
     "name": "Kebun Binatang Surabaya",
-    "demand": 41
+    "demand": 41,
+    "photo": "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2547,
     "lng": 112.7684,
     "name": "BG Junction",
-    "demand": 27
+    "demand": 27,
+    "photo": "https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=200&h=200&fit=crop"
   },
   {
     "lat": -7.2797,
     "lng": 112.7447,
     "name": "Pasar Atum Mall",
-    "demand": 24
+    "demand": 24,
+    "photo": "https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=200&h=200&fit=crop"
   }
 ]

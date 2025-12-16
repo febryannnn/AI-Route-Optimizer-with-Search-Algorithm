@@ -121,20 +121,20 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
                 route[i], route[j] = route[j], route[i]
         
         elif operation == 'relocate' and len(non_empty) >= 1:
-            # Move customer from one route to another
+            # pindah customer ke rute lain
             from_idx = random.choice(non_empty)
             from_route = new_routes[from_idx]
             
             if from_route:
-                # Select random customer to move
+                # ambil index customer random
                 cust_idx = random.randint(0, len(from_route) - 1)
                 customer = from_route.pop(cust_idx)
                 
-                # Try to insert in another route or same route
+                # ambil index rute tujuan
                 to_idx = random.randint(0, len(new_routes) - 1)
                 to_route = new_routes[to_idx]
                 
-                # Check capacity before inserting
+                # cek kapasitas dulu sebelum insert
                 vehicle = vehicle_list[to_idx]
                 current_load = sum(demands[c] for c in to_route)
                 
@@ -145,11 +145,11 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
                     else:
                         to_route.append(customer)
                 else:
-                    # Put back if can't insert
+                    # kembalikan ke rute asal kalo ga muat
                     from_route.insert(cust_idx, customer)
         
         elif operation == 'two_opt' and len(non_empty) >= 1:
-            # Reverse segment in route
+            # reverse segmen dalam satu rute (ujung kiri ke ujung kanan)
             route_idx = random.choice(non_empty)
             route = new_routes[route_idx]
             if len(route) >= 2:
@@ -157,13 +157,13 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
                 route[i:j+1] = reversed(route[i:j+1])
         
         elif operation == 'cross_exchange' and len(non_empty) >= 2:
-            # Exchange segments between two routes
+            # tuker segmen antar 2 rute, segmen itu beberapa customer
             route1_idx, route2_idx = random.sample(non_empty, 2)
             route1 = new_routes[route1_idx]
             route2 = new_routes[route2_idx]
             
             if route1 and route2:
-                # Select random segments
+                # pilih segmen random (minimal 2 customer)
                 seg1_len = random.randint(1, min(2, len(route1)))
                 seg2_len = random.randint(1, min(2, len(route2)))
                 
@@ -173,11 +173,11 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
                 seg1 = route1[seg1_start:seg1_start + seg1_len]
                 seg2 = route2[seg2_start:seg2_start + seg2_len]
                 
-                # Create new routes with swapped segments
+                # buat rute baru dengan segmen ditukar
                 new_route1 = route1[:seg1_start] + seg2 + route1[seg1_start + seg1_len:]
                 new_route2 = route2[:seg2_start] + seg1 + route2[seg2_start + seg2_len:]
                 
-                # Check capacity constraints
+                # cek kapasitas sebelum diterapkan
                 v1_cap = vehicle_list[route1_idx]["capacity"]
                 v2_cap = vehicle_list[route2_idx]["capacity"]
                 
@@ -198,7 +198,6 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
         for _ in range(num_candidates):
             candidate = get_neighbor(routes)
             
-            # Skip invalid candidates
             if not is_valid(candidate):
                 continue
             
@@ -210,7 +209,6 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
         
         return best_candidate, best_candidate_cost
     
-    # Variable neighborhood search for intensification
     def variable_neighborhood_search(routes, max_no_improve=5):
         current = copy.deepcopy(routes)
         current_cost, _, _ = calculate_cost(current)
@@ -219,22 +217,21 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
         while no_improve < max_no_improve:
             improved = False
             
-            # Try different neighborhood operations
             operations = ['swap', 'relocate', 'two_opt', 'cross_exchange']
             
             for operation in operations:
-                # Generate candidates using specific operation
+                # generate neighbornya urut iteratif berdasarkan operation
                 best_neighbor = current
                 best_neighbor_cost = current_cost
                 
-                for _ in range(5):  # Try 5 times per operation
+                for _ in range(5):  # coba 5 neighbor tiap 1 operasi
                     neighbor = copy.deepcopy(current)
                     non_empty = [i for i, r in enumerate(neighbor) if r]
                     
                     if not non_empty:
                         continue
                     
-                    # Apply specific operation
+                    # if-else condition untuk tiap operasi
                     if operation == 'swap' and len(non_empty) >= 1:
                         route_idx = random.choice(non_empty)
                         route = neighbor[route_idx]
@@ -298,7 +295,7 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
                         best_neighbor = neighbor
                         best_neighbor_cost = neighbor_cost
                 
-                # If improvement found, update current solution
+                # jika ada improvement maka no improbe direset
                 if best_neighbor_cost < current_cost:
                     current = best_neighbor
                     current_cost = best_neighbor_cost
@@ -306,12 +303,13 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
                     no_improve = 0
                     break
             
+            # setiap gaada improve maka ditambah 1, ini untuk menghindari loop terus (infinite loop)
             if not improved:
                 no_improve += 1
         
         return current, current_cost
     
-    # Initialize
+    # FUNGSI UTAMA (JALANNYA ALGORITMA SA)
     current_routes = nearest_neighbor_init()
     current_cost, bikes, cars = calculate_cost(current_routes)
     
@@ -321,7 +319,7 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
     history = []
     current_temp = temp
     
-    # Record initial state
+    # untuk optimization progress di frontend nantinya
     history.append({
         "iteration": 0,
         "cost": current_cost,
@@ -330,23 +328,24 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
         "carsUsed": cars
     })
     
-    # Main SA loop with local search
+    # MAIN SA LOOP
     for iteration in range(1, max_iter + 1):
-        # Use local search to find best neighbor candidate
-        # Adjust number of candidates based on temperature
-        # Higher temperature = more exploration (fewer candidates)
-        # Lower temperature = more exploitation (more candidates)
+        # gunakan local search untuk cari neighbor terbaik
+        # dengan jumlah kandidat tergantung temperatur
+        # temperatur tinggi = eksplorasi lebih banyak (lebih banyak kandidat)
+        # temperatur rendah = eksploitasi (lebih sedikit kandidat)
+        # loop berhenti ketika suhu < 0.01, tapi kita batasi juga dengan max_iter
         num_candidates = int(5 + (15 * (1 - current_temp / temp)))
         new_routes, new_cost = local_search(current_routes, num_candidates)
         
-        # Calculate acceptance probability
+        # hitung delta cost (cost baru - cost lama)
         delta = new_cost - current_cost
         
         if delta < 0:
-            # Accept better solution
+            # langsun terima, karena solusi baru lebih baik
             accept = True
         else:
-            # Accept worse solution with probability
+            # cek dengan probabilitas
             prob = math.exp(-delta / current_temp)
             accept = random.random() < prob
         
@@ -355,12 +354,12 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
             current_cost = new_cost
             new_bikes, new_cars = calculate_cost(current_routes)[1:]
             
-            # Update best solution
+            # update solusi terbaik
             if current_cost < best_cost:
                 best_routes = copy.deepcopy(current_routes)
                 best_cost = current_cost
                 
-                # Apply variable neighborhood search for intensification
+                # jalankan VNS
                 if iteration % 50 == 0:
                     improved_routes, improved_cost = variable_neighborhood_search(best_routes)
                     if improved_cost < best_cost:
@@ -369,7 +368,7 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
         else:
             new_bikes, new_cars = bikes, cars
         
-        # Record history (every 5 iterations to reduce data)
+        # history hanya di update setiap 5 iterasi untuk mengurangi ukuran data
         if iteration % 5 == 0:
             history.append({
                 "iteration": iteration,
@@ -379,10 +378,10 @@ def simulated_annealing(dist_car, dist_bike, demands, vehicles, max_iter, temp, 
                 "carsUsed": new_cars
             })
         
-        # Cool down
+        # turunkan suhu, temp = temp * cooling_rate
         current_temp *= cooling
     
-    # Final intensification
+    # VNS terakhir
     final_routes, final_cost = variable_neighborhood_search(best_routes, max_no_improve=10)
     if final_cost < best_cost:
         best_routes = final_routes
