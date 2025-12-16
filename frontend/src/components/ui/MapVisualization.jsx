@@ -119,10 +119,36 @@ const MapVisualization = ({
                 position={[loc.lat, loc.lng]}
                 icon={idx === 0 ? depotIcon : deliveryIcon}
               >
-                <Popup>
-                  <div className="font-semibold">{loc.name}</div>
-                  <div className="text-xs text-gray-500">
-                    Demand: {loc.demand || 0}
+                <Popup maxWidth={250}>
+                  <div className="p-1">
+                    {loc.photo && (
+                      <img
+                        src={loc.photo}
+                        alt={loc.name}
+                        className="w-full h-32 object-cover rounded-lg mb-2"
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                        }}
+                      />
+                    )}
+                    <div className="font-semibold text-gray-800 mb-1">
+                      {loc.name}
+                    </div>
+                    <div className="text-xs text-gray-500 space-y-0.5">
+                      <div>
+                        📍 {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+                      </div>
+                      {loc.demand > 0 && (
+                        <div className="font-semibold text-blue-600">
+                          📦 Demand: {loc.demand} units
+                        </div>
+                      )}
+                      {idx === 0 && (
+                        <div className="text-red-600 font-semibold">
+                          🏭 Main Depot
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Popup>
               </Marker>

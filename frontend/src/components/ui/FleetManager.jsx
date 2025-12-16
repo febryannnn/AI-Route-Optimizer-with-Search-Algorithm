@@ -75,6 +75,9 @@ const FleetManager = ({ vehicles, onUpdateVehicle, onDeleteVehicle }) => {
                 <div className="text-xs text-gray-500">
                   Count: <span className="font-bold">{v.count}</span>
                 </div>
+                <div className="text-xs text-gray-500">
+                  Capacity: <span className="font-bold">{v.capacity}</span>
+                </div>
               </div>
             </div>
             <button
