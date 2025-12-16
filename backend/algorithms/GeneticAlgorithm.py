@@ -22,6 +22,7 @@ class VRPSolver:
         self.total_vehicles = car_count + bike_count
         self.vehicle_capacities = [car_capacity] * car_count + [bike_capacity] * bike_count
 
+    # generate routes/chrom with cw saving 
     def generate_clarke_wright_chrom(self):
         # calc saving
         savings = []
@@ -32,7 +33,7 @@ class VRPSolver:
                     s_val = self.dist_car[0][i] + self.dist_car[0][j] - self.dist_car[i][j]
                     savings.append((s_val, i, j))
         
-        # Sort savings descending
+        # sort savings descending
         savings.sort(key=lambda x: x[0], reverse=True)
         
         # init route each customer in single route
@@ -69,7 +70,7 @@ class VRPSolver:
                         route_j.extend(route_i)
                         routes.remove(route_i)
 
-        # conver route to chromosome
+        # convert route to chromosome
         cw_chrom = []
         for idx, r in enumerate(routes):
             cw_chrom.extend(r)
@@ -78,6 +79,7 @@ class VRPSolver:
         
         return cw_chrom
 
+    # generate routes/chrom with randomization
     def generate_chrom(self):
         route = self.customer_locations[:]
         random.shuffle(route)
@@ -118,6 +120,7 @@ class VRPSolver:
             
         return pop
 
+    # decode chrom, translate the chrom list to dict of vehicle, route, and demand of customers
     def decode_chrom(self, chrom):
         routes = []
         current_route = []
@@ -170,7 +173,7 @@ class VRPSolver:
                 cars_assigned += 1
                 
             elif bike_available:
-                # only bikes left, use bike (will get penalty if over capacity)
+                # only bikes left, use bike
                 vehicle_type = "bike"
                 bikes_assigned += 1
                 
@@ -197,6 +200,7 @@ class VRPSolver:
 
         return routes_with_types
 
+    # calc each route cost in a chrom
     def calculate_cost(self, routes_with_types):
         total = 0
         capacity_penalty = 0
@@ -222,6 +226,7 @@ class VRPSolver:
     
         return total + capacity_penalty
 
+    # fitness function to check the chrom
     def fitness(self, chrom):
         routes = self.decode_chrom(chrom)
         cost = self.calculate_cost(routes)
@@ -235,6 +240,7 @@ class VRPSolver:
         if cost == 0: return float('inf')
         return 1 / cost
 
+    # alternatin edge crossover for explorative 
     def aex_crossover(self, parent1, parent2):
         p1_customer = [g for g in parent1 if g != -1]
         p2_customer = [g for g in parent2 if g != -1]
@@ -300,6 +306,7 @@ class VRPSolver:
         
         return chromosome
 
+    # inversion, swap, separator mutation for the exploitation part
     def inversion_mutation(self, chrom):
         if random.random() < self.mutation_rate:
             mutation_type = random.choice(['inversion', 'move_separator', 'swap'])
@@ -388,22 +395,8 @@ class VRPSolver:
 
 def genetic_algorithm(dist_car, dist_bike, pop_size, generations, mutation_rate,
                       car_count, bike_count, car_capacity, bike_capacity, demands):
-    
-    print(f"\n=== GENETIC ALGORITHM INPUTS ===")
-    print(f"Distance matrix size: {len(dist_car)}x{len(dist_car)}")
-    print(f"Number of customers: {len(demands) - 1}")  # -1 for depot
-    print(f"Demands: {demands}")
-    print(f"Vehicles: {car_count} cars, {bike_count} bikes")
-    print(f"Capacities: car={car_capacity}kg, bike={bike_capacity}kg")
-    print(f"GA params: pop={pop_size}, gen={generations}, mut={mutation_rate}")
-    
-    if len(demands) < 2:
-        raise ValueError(f"Not enough customers! Only {len(demands)-1} customers provided.")
-    
-    if len(dist_car) != len(demands):
-        raise ValueError(f"Distance matrix size ({len(dist_car)}) doesn't match demands ({len(demands)})")
 
-    solver = VRPSolver(dist_car, dist_bike, pop_size, generations, mutation_rate,
-                       car_count, bike_count, car_capacity, bike_capacity, demands)
+    solver = VRPSolver(dist_car, dist_bike, pop_size, generations, car_count, 
+                       bike_count, car_capacity, bike_capacity, demands, mutation_rate=0.2)
     
     return solver.run()
